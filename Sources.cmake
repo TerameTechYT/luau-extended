@@ -350,6 +350,7 @@ target_sources(Luau.VM PRIVATE
     VM/src/ldblib.cpp
     VM/src/ljsonlib.cpp
     VM/src/ltomllib.cpp
+    VM/src/lxmllib.cpp
     VM/src/ldebug.cpp
     VM/src/ldo.cpp
     VM/src/lfunc.cpp
@@ -374,6 +375,7 @@ target_sources(Luau.VM PRIVATE
     VM/src/lvmexecute.cpp
     VM/src/lvmload.cpp
     VM/src/lvmutils.cpp
+    VM/src/tinyxml2.cpp
 
     VM/src/lapi.h
     VM/src/lbuffer.h

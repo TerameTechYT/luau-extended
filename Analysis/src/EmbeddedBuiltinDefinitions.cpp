@@ -395,6 +395,35 @@ declare toml: {
 
 )BUILTIN_SRC";
 
+static const char* const kBuiltinDefinitionTomlSrc = R"BUILTIN_SRC(
+declare type TomlSerializable = nil | boolean | number | string | {TomlSerializable} | {[string]: TomlSerializable }
+
+declare toml: {
+    serialize: @checked (input: TomlSerializable) -> string,
+    deserialize: @checked (input: string) -> TomlSerializable,
+}
+
+)BUILTIN_SRC";
+
+static const char* const kBuiltinDefinitionXmlSrc = R"BUILTIN_SRC(
+declare type XmlAttributes = {[string]: string}
+
+declare type XmlNode = {
+    tag: string,
+    attr: XmlAttributes?,
+    text: string?,
+    children: { XmlNode }?
+}
+
+declare type XmlDocument = XmlNode | { XmlNode }
+
+declare xml: {
+    serialize: @checked (input: XmlDocument) -> string,
+    deserialize: @checked (input: string) -> XmlDocument,
+}
+)BUILTIN_SRC";
+
+
 std::string getBuiltinDefinitionSource()
 {
     std::string result = kBuiltinDefinitionBaseSrc;
@@ -424,6 +453,7 @@ std::string getBuiltinDefinitionSource()
     result += kBuiltinDefinitionVectorSrc;
     result += kBuiltinDefinitionJsonSrc;
     result += kBuiltinDefinitionTomlSrc;
+    result += kBuiltinDefinitionXmlSrc;
 
     return result;
 }
