@@ -11,7 +11,9 @@
 
 #include <string.h>
 #include <cstdlib>
+#include <inttypes.h>
 #include <ctype.h>
+#include <cstdio>
 
 LUAU_FASTFLAG(LuauStacklessPcall)
 
@@ -558,6 +560,240 @@ void luaL_pushresultsize(luaL_Strbuf* B, size_t size)
 
 // }======================================================
 
+#define MAX_DEPTH 16
+
+static void add_escaped(luaL_Buffer* buf, const char* s, size_t len)
+{
+    const char* p = s;
+    const char* end = s + len;
+    for (; p < end; ++p)
+    {
+        unsigned char c = (unsigned char)*p;
+        switch (c)
+        {
+        case '\\':
+            luaL_addstring(buf, "\\\\");
+            break;
+        case '"':
+            luaL_addstring(buf, "\\\"");
+            break;
+        case '\n':
+            luaL_addstring(buf, "\\n");
+            break;
+        case '\r':
+            luaL_addstring(buf, "\\r");
+            break;
+        case '\t':
+            luaL_addstring(buf, "\\t");
+            break;
+        case '\b':
+            luaL_addstring(buf, "\\b");
+            break;
+        case '\f':
+            luaL_addstring(buf, "\\f");
+            break;
+        default:
+            if (c >= 32 && c <= 126)
+            { // printable ASCII
+                char tmp[2] = {(char)c, '\0'};
+                luaL_addstring(buf, tmp);
+            }
+            else
+            {
+                // use \xHH for non-printable bytes
+                char tmp[5];
+                snprintf(tmp, sizeof(tmp), "\\x%02X", c);
+                luaL_addstring(buf, tmp);
+            }
+        }
+    }
+}
+
+static void serialize_value(lua_State* L, int idx, int seen_index, luaL_Buffer* buf, int depth);
+
+static void add_number(luaL_Buffer* buf, lua_Number num)
+{
+    // check integer
+    lua_Number intpart;
+    if (modf(num, &intpart) == 0.0)
+    {
+        // integer
+        char tmp[64];
+        // use PRId64 for safety by casting
+        int64_t iv = (int64_t)intpart;
+        snprintf(tmp, sizeof(tmp), "%" PRId64, iv);
+        luaL_addstring(buf, tmp);
+    }
+    else
+    {
+        char tmp[64];
+        // floating with reasonable precision
+        snprintf(tmp, sizeof(tmp), "%.14g", (double)num);
+        luaL_addstring(buf, tmp);
+    }
+}
+
+static void serialize_table(lua_State* L, int idx, int seen_index, luaL_Buffer* buf, int depth)
+{
+    if (depth > MAX_DEPTH)
+    {
+        luaL_addstring(buf, "<...>");
+        return;
+    }
+
+    // Check for cycles: if seen_idx[table] then we've already visited it
+    lua_pushvalue(L, idx);     // push table as key
+    lua_rawget(L, seen_index); // get seen[table]
+    if (!lua_isnil(L, -1))
+    {
+        // Already seen: print pointer-ish representation to indicate recursion
+        lua_pop(L, 1);
+        luaL_addstring(buf, "<...>");
+        return;
+    }
+    lua_pop(L, 1);
+
+    // mark as seen: seen[table] = true
+    lua_pushvalue(L, idx); // push table key
+    lua_pushboolean(L, 1);
+    lua_rawset(L, seen_index); // seen[table] = true
+
+    luaL_addstring(buf, "\n");
+    for (auto i = 0; i < depth; i++)
+        luaL_addchar(buf, '\t');
+    luaL_addstring(buf, "{");
+
+    // First serialize array part 1..n
+    size_t seq = lua_objlen(L, idx);
+    int first = 1;
+    for (size_t i = 1; i <= seq; ++i)
+    {
+        lua_rawgeti(L, idx, (lua_Integer)i); // push value
+        if (!first)
+            luaL_addstring(buf, ", ");
+        serialize_value(L, lua_gettop(L), seen_index, buf, depth + 1);
+        lua_pop(L, 1); // pop value
+        first = 0;
+    }
+
+    // Now serialize non-array key/value pairs using lua_next
+    lua_pushnil(L); // first key
+    while (lua_next(L, idx) != 0)
+    {
+        // stack: ... key at -2, value at -1
+        // skip integer keys 1..seq (already handled)
+        int keytype = lua_type(L, -2);
+        if (keytype == LUA_TNUMBER)
+        {
+            lua_Number k = lua_tonumber(L, -2);
+            lua_Number kint;
+            if (modf(k, &kint) == 0.0)
+            {
+                lua_Integer ki = (lua_Integer)kint;
+                if (ki >= 1 && (size_t)ki <= seq)
+                {
+                    lua_pop(L, 1); // pop value, keep key for next iteration
+                    continue;
+                }
+            }
+        }
+
+        if (!first)
+            luaL_addstring(buf, ",\n");
+
+        for (auto i = 0; i < depth + 1; i++)
+            luaL_addchar(buf, '\t');
+
+        // format key
+        luaL_addchar(buf, '[');
+        serialize_value(L, lua_gettop(L) - 1, seen_index, buf, depth + 1); // key is -2; convert to abs idx
+        luaL_addstring(buf, "] = ");
+
+        // format value
+        serialize_value(L, lua_gettop(L), seen_index, buf, depth + 1); // value is -1
+        lua_pop(L, 1);                                                 // pop value, leave key for next lua_next
+        first = 0;
+    }
+
+    luaL_addstring(buf, "\n");
+    for (auto i = 0; i < depth; i++)
+        luaL_addchar(buf, '\t');
+    luaL_addstring(buf, "}");
+    // Note: we intentionally do not unmark the table in seen table to avoid printing repeated tables multiple times.
+}
+
+static void serialize_value(lua_State* L, int idx, int seen_index, luaL_Buffer* buf, int depth)
+{
+    if (depth > MAX_DEPTH)
+    {
+        luaL_addstring(buf, "<...>");
+        return;
+    }
+
+    idx = lua_absindex(L, idx);
+    seen_index = lua_absindex(L, seen_index);
+
+    int t = lua_type(L, idx);
+    switch (t)
+    {
+    case LUA_TNIL:
+        luaL_addstring(buf, "nil");
+        break;
+    case LUA_TNUMBER:
+        add_number(buf, lua_tonumber(L, idx));
+        break;
+    case LUA_TBOOLEAN:
+        luaL_addstring(buf, lua_toboolean(L, idx) ? "true" : "false");
+        break;
+    case LUA_TSTRING:
+    {
+        size_t len;
+        const char* s = lua_tolstring(L, idx, &len);
+        luaL_addchar(buf, '"');
+        add_escaped(buf, s, len);
+        luaL_addchar(buf, '"');
+        break;
+    }
+    case LUA_TTABLE:
+        serialize_table(L, idx, seen_index, buf, depth);
+        break;
+    default:
+    {
+        const void* ptr = lua_topointer(L, idx);
+        unsigned long long enc = lua_encodepointer(L, uintptr_t(ptr));
+        char tmp[128];
+        snprintf(tmp, sizeof(tmp), "%s: 0x%016llx", luaL_typename(L, idx), enc);
+        luaL_addstring(buf, tmp);
+        break;
+    }
+    }
+}
+
+const char* luaL_tabletostring(lua_State* L, int idx)
+{
+    // create seen table and leave it on the stack
+    lua_newtable(L);
+    int seen_index = lua_gettop(L); // absolute index to seen table
+
+    luaL_Buffer buf;
+    luaL_buffinit(L, &buf);
+
+    if (lua_gettop(L) < 1)
+    {
+        lua_pushnil(L);
+        idx = lua_gettop(L);
+    }
+
+    serialize_value(L, idx, seen_index, &buf, 0);
+
+    // remove the seen table from the stack before pushing result
+    lua_remove(L, seen_index);
+
+    // push result string
+    luaL_pushresult(&buf);
+    return lua_tostring(L, -1);
+}
+
 const char* luaL_tolstring(lua_State* L, int idx, size_t* len)
 {
     if (luaL_callmeta(L, idx, "__tostring")) // is there a metafield?
@@ -604,6 +840,9 @@ const char* luaL_tolstring(lua_State* L, int idx, size_t* len)
     }
     case LUA_TSTRING:
         lua_pushvalue(L, idx);
+        break;
+    case LUA_TTABLE:
+        luaL_tabletostring(L, idx);
         break;
     default:
     {
