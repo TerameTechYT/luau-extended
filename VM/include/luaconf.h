@@ -61,9 +61,14 @@
 #define LUAI_DATA extern
 #endif
 
-// Can be used to reconfigure internal error handling to use longjmp instead of C++ EH
+// LUA_USE_LONGJMP Can be used to reconfigure internal error handling to use longjmp instead of C++ EH
 #ifndef LUA_USE_LONGJMP
-#define LUA_USE_LONGJMP 0
+#define LUA_USE_LONGJMP 1
+#endif
+
+// LUAI_GCMETRICS Can be used to enable or disable lua gc metrics
+#ifndef LUAI_GCMETRICS
+#define LUAI_GCMETRICS 1
 #endif
 
 // LUA_IDSIZE gives the maximum size for the description of the source

@@ -90,7 +90,7 @@ struct GCStats
     double endtimestamp = 0;
 };
 
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
 struct GCCycleMetrics
 {
     size_t starttotalsizebytes = 0;
@@ -217,7 +217,7 @@ typedef struct global_State
 
     GCStats gcstats;
 
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
     GCMetrics gcmetrics;
 #endif
 } global_State;

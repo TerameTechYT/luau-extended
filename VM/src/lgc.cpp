@@ -148,7 +148,7 @@
             reallymarkobject(g, obj2gco(t)); \
     }
 
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
 static void recordGcStateStep(global_State* g, int startgcstate, double seconds, bool assist, size_t work)
 {
     switch (startgcstate)
@@ -812,7 +812,7 @@ static size_t atomic(lua_State* L)
 
     size_t work = 0;
 
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
     double currts = lua_clock();
 #endif
 
@@ -821,7 +821,7 @@ static size_t atomic(lua_State* L)
     // traverse objects caught by write barrier and by 'remarkupvals'
     work += propagateall(g);
 
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
     g->gcmetrics.currcycle.atomictimeupval += recordGcDeltaTime(currts);
 #endif
 
@@ -833,7 +833,7 @@ static size_t atomic(lua_State* L)
     markmt(g);        // mark basic metatables (again)
     work += propagateall(g);
 
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
     g->gcmetrics.currcycle.atomictimeweak += recordGcDeltaTime(currts);
 #endif
 
@@ -842,7 +842,7 @@ static size_t atomic(lua_State* L)
     g->grayagain = NULL;
     work += propagateall(g);
 
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
     g->gcmetrics.currcycle.atomictimegray += recordGcDeltaTime(currts);
 #endif
 
@@ -850,14 +850,14 @@ static size_t atomic(lua_State* L)
     work += cleartable(L, g->weak);
     g->weak = NULL;
 
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
     g->gcmetrics.currcycle.atomictimeclear += recordGcDeltaTime(currts);
 #endif
 
     // close orphaned live upvalues of dead threads and clear dead upvalues
     work += clearupvals(L);
 
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
     g->gcmetrics.currcycle.atomictimeupval += recordGcDeltaTime(currts);
 #endif
 
@@ -937,7 +937,7 @@ static size_t gcstep(lua_State* L, size_t limit)
 
         if (!g->gray)
         {
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
             g->gcmetrics.currcycle.propagatework = g->gcmetrics.currcycle.explicitwork + g->gcmetrics.currcycle.assistwork;
 #endif
 
@@ -958,7 +958,7 @@ static size_t gcstep(lua_State* L, size_t limit)
 
         if (!g->gray) // no more `gray' objects
         {
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
             g->gcmetrics.currcycle.propagateagainwork =
                 g->gcmetrics.currcycle.explicitwork + g->gcmetrics.currcycle.assistwork - g->gcmetrics.currcycle.propagatework;
 #endif
@@ -969,7 +969,7 @@ static size_t gcstep(lua_State* L, size_t limit)
     }
     case GCSatomic:
     {
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
         g->gcmetrics.currcycle.atomicstarttimestamp = lua_clock();
         g->gcmetrics.currcycle.atomicstarttotalsizebytes = g->totalbytes;
 #endif
@@ -1081,7 +1081,7 @@ size_t luaC_step(lua_State* L, bool assist)
     if (g->gcstate == GCSpause)
         g->gcstats.starttimestamp = lua_clock();
 
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
     if (g->gcstate == GCSpause)
         startGcCycleMetrics(g);
 
@@ -1092,7 +1092,7 @@ size_t luaC_step(lua_State* L, bool assist)
 
     size_t work = gcstep(L, lim);
 
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
     recordGcStateStep(g, lastgcstate, lua_clock() - lasttimestamp, assist, work);
 #endif
 
@@ -1111,7 +1111,7 @@ size_t luaC_step(lua_State* L, bool assist)
         g->gcstats.endtimestamp = lua_clock();
         g->gcstats.endtotalsizebytes = g->totalbytes;
 
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
         finishGcCycleMetrics(g);
 #endif
     }
@@ -1133,7 +1133,7 @@ void luaC_fullgc(lua_State* L)
 {
     global_State* g = L->global;
 
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
     if (g->gcstate == GCSpause)
         startGcCycleMetrics(g);
 #endif
@@ -1163,7 +1163,7 @@ void luaC_fullgc(lua_State* L)
         uv->markedopen = 0;
     }
 
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
     finishGcCycleMetrics(g);
     startGcCycleMetrics(g);
 #endif
@@ -1192,7 +1192,7 @@ void luaC_fullgc(lua_State* L)
 
     g->gcstats.heapgoalsizebytes = heapgoalsizebytes;
 
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
     finishGcCycleMetrics(g);
 #endif
 }

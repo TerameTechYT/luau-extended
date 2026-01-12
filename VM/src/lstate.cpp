@@ -227,7 +227,7 @@ lua_State* lua_newstate(lua_Alloc f, void* ud)
 
     g->gcstats = GCStats();
 
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
     g->gcmetrics = GCMetrics();
 #endif
 

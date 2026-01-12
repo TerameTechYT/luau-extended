@@ -1203,7 +1203,7 @@ int lua_gc(lua_State* L, int what, int data)
         else
             g->GCthreshold = 0;
 
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
         double startmarktime = g->gcmetrics.currcycle.marktime;
         double startsweeptime = g->gcmetrics.currcycle.sweeptime;
 #endif
@@ -1224,7 +1224,7 @@ int lua_gc(lua_State* L, int what, int data)
             }
         }
 
-#ifdef LUAI_GCMETRICS
+#if LUAI_GCMETRICS == 1
         // record explicit step statistics
         GCCycleMetrics* cyclemetrics = g->gcstate == GCSpause ? &g->gcmetrics.lastcycle : &g->gcmetrics.currcycle;
 
