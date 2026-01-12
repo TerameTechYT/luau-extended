@@ -154,6 +154,9 @@ LUALIB_API int luaopen_json(lua_State* L);
 #define LUA_TOMLLIBNAME "toml"
 LUALIB_API int luaopen_toml(lua_State* L);
 
+#define LUA_YAMLLIBNAME "yaml"
+LUALIB_API int luaopen_yaml(lua_State* L);
+
 #define LUA_XMLLIBNAME "xml"
 LUALIB_API int luaopen_xml(lua_State* L);
 

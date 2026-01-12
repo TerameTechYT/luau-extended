@@ -350,7 +350,9 @@ target_sources(Luau.VM PRIVATE
     VM/src/ldblib.cpp
     VM/src/ljsonlib.cpp
     VM/src/ltomllib.cpp
+    VM/src/lyamllib.cpp
     VM/src/lxmllib.cpp
+
     VM/src/ldebug.cpp
     VM/src/ldo.cpp
     VM/src/lfunc.cpp
@@ -621,4 +623,41 @@ if(TARGET Luau.Bytecode.CLI)
     # Luau.Bytecode.CLI Sources
     target_sources(Luau.Bytecode.CLI PRIVATE
         CLI/src/Bytecode.cpp)
+endif()
+
+if (TARGET yaml-cpp)
+    # yaml-cpp sources
+    target_sources(yaml-cpp PRIVATE
+        extern/yaml-cpp/src/contrib/graphbuilder.cpp
+        extern/yaml-cpp/src/contrib/graphbuilderadapter.cpp
+        extern/yaml-cpp/src/binary.cpp
+        extern/yaml-cpp/src/convert.cpp
+        extern/yaml-cpp/src/depthguard.cpp
+        extern/yaml-cpp/src/directives.cpp
+        extern/yaml-cpp/src/emit.cpp
+        extern/yaml-cpp/src/emitfromevents.cpp
+        extern/yaml-cpp/src/emitter.cpp
+        extern/yaml-cpp/src/emitterstate.cpp
+        extern/yaml-cpp/src/emitterutils.cpp
+        extern/yaml-cpp/src/exceptions.cpp
+        extern/yaml-cpp/src/exp.cpp
+        extern/yaml-cpp/src/memory.cpp
+        extern/yaml-cpp/src/node.cpp
+        extern/yaml-cpp/src/nodebuilder.cpp
+        extern/yaml-cpp/src/nodeevents.cpp
+        extern/yaml-cpp/src/node_data.cpp
+        extern/yaml-cpp/src/null.cpp
+        extern/yaml-cpp/src/ostream_wrapper.cpp
+        extern/yaml-cpp/src/parse.cpp
+        extern/yaml-cpp/src/parser.cpp
+        extern/yaml-cpp/src/regex_yaml.cpp
+        extern/yaml-cpp/src/scanner.cpp
+        extern/yaml-cpp/src/scanscalar.cpp
+        extern/yaml-cpp/src/scantag.cpp
+        extern/yaml-cpp/src/scantoken.cpp
+        extern/yaml-cpp/src/simplekey.cpp
+        extern/yaml-cpp/src/singledocparser.cpp
+        extern/yaml-cpp/src/stream.cpp
+        extern/yaml-cpp/src/tag.cpp
+    )
 endif()

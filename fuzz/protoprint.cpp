@@ -104,6 +104,7 @@ static const std::string kNames[] = {
     "math",
     "json",
     "toml"
+    "yaml"
     "xml"
     "max",
     "maxn",
