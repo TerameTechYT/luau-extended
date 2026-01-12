@@ -755,6 +755,7 @@ struct TypeMapVisitor : AstVisitor
             case LBF_STRING_SUB:
             case LBF_TOSTRING:
             case LBF_JSON_SERIALIZE:
+            case LBF_TOML_SERIALIZE:
                 recordResolvedType(node, &builtinTypes.stringType);
                 break;
 

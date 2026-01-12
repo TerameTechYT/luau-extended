@@ -375,12 +375,22 @@ declare vector: {
 
 )BUILTIN_SRC";
 
-static const char* const kBuiltingDefinitionJsonSrc = R"BUILTIN_SRC(
+static const char* const kBuiltinDefinitionJsonSrc = R"BUILTIN_SRC(
 declare type JsonSerializable = nil | boolean | number | string | {JsonSerializable} | {[string]: JsonSerializable }
 
 declare json: {
     serialize: @checked (input: JsonSerializable) -> string,
     deserialize: @checked (input: string) -> JsonSerializable,
+}
+
+)BUILTIN_SRC";
+
+static const char* const kBuiltinDefinitionTomlSrc = R"BUILTIN_SRC(
+declare type TomlSerializable = boolean | number | string | {TomlSerializable} | {[string]: TomlSerializable }
+
+declare toml: {
+    serialize: @checked (input: TomlSerializable) -> string,
+    deserialize: @checked (input: string) -> TomlSerializable,
 }
 
 )BUILTIN_SRC";
@@ -412,7 +422,8 @@ std::string getBuiltinDefinitionSource()
     result += kBuiltinDefinitionUtf8Src;
     result += kBuiltinDefinitionBufferSrc;
     result += kBuiltinDefinitionVectorSrc;
-    result += kBuiltingDefinitionJsonSrc;
+    result += kBuiltinDefinitionJsonSrc;
+    result += kBuiltinDefinitionTomlSrc;
 
     return result;
 }

@@ -349,6 +349,7 @@ target_sources(Luau.VM PRIVATE
     VM/src/lcorolib.cpp
     VM/src/ldblib.cpp
     VM/src/ljsonlib.cpp
+    VM/src/ltomllib.cpp
     VM/src/ldebug.cpp
     VM/src/ldo.cpp
     VM/src/lfunc.cpp
