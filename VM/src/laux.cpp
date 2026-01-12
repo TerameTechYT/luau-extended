@@ -652,6 +652,8 @@ static void serialize_table(lua_State* L, int idx, int seen_index, luaL_Buffer* 
     idx = lua_absindex(L, idx);
     seen_index = lua_absindex(L, seen_index);
 
+    luaL_checkstack(L, LUA_MAXTTSDEPTH, "serialize table");
+
     // recursion stack cycle check: if seen[table] then cycle
     lua_pushvalue(L, idx);
     lua_rawget(L, seen_index);
@@ -751,6 +753,8 @@ static void serialize_value(lua_State* L, int idx, int seen_index, luaL_Buffer* 
     idx = lua_absindex(L, idx);
     seen_index = lua_absindex(L, seen_index);
 
+    luaL_checkstack(L, LUA_MAXTTSDEPTH, "serialize value");
+
     switch (lua_type(L, idx))
     {
     case LUA_TNIL:
@@ -788,6 +792,7 @@ static void serialize_value(lua_State* L, int idx, int seen_index, luaL_Buffer* 
 const char* luaL_tabletostring(lua_State* L, int idx)
 {
     idx = lua_absindex(L, idx);
+    luaL_checkstack(L, LUA_MAXTTSDEPTH, "table to string");
 
     lua_newtable(L);
     int seen_index = lua_gettop(L); // absolute
