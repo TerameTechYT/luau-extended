@@ -197,7 +197,7 @@ static int luaB_pairs(lua_State* L)
     return 3;
 }
 
-int luaB_inext(lua_State* L)
+static int luaB_inext(lua_State* L)
 {
     int i = luaL_checkinteger(L, 2);
     luaL_checktype(L, 1, LUA_TTABLE);
