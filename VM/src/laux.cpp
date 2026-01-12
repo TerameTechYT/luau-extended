@@ -675,12 +675,12 @@ double luaL_tonumber(lua_State* L, int idx)
 
 int luaL_toboolean(lua_State* L, int idx)
 {
-    //if (luaL_callmeta(L, idx, "__toboolean")) // is there a metafield?
-    //{
-    //    if (lua_isboolean(L, -1))
-    //        luaL_error(L, "'__toboolean' must return a boolean");
-    //    return lua_toboolean(L, -1);
-    //}
+    if (luaL_callmeta(L, idx, "__toboolean")) // is there a metafield?
+    {
+        if (lua_isboolean(L, -1))
+            luaL_error(L, "'__toboolean' must return a boolean");
+        return lua_toboolean(L, -1);
+    }
 
     switch (lua_type(L, idx))
     {
