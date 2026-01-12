@@ -277,6 +277,14 @@ static int getBuiltinFunctionId(const Builtin& builtin, const CompileOptions& op
             return LBF_JSON_DESERIALIZE;
     }
 
+    if (builtin.object == "toml")
+    {
+        if (builtin.method == "serialize")
+            return LBF_TOML_SERIALIZE;
+        if (builtin.method == "deserialize")
+            return LBF_TOML_DESERIALIZE;
+    }
+
     if (options.vectorCtor)
     {
         if (options.vectorLib)
@@ -594,6 +602,11 @@ BuiltinInfo getBuiltinInfo(int bfid)
     case LBF_JSON_SERIALIZE:
         return {1, 1};
     case LBF_JSON_DESERIALIZE:
+        return {1, 1};
+
+    case LBF_TOML_SERIALIZE:
+        return {1, 1};
+    case LBF_TOML_DESERIALIZE:
         return {1, 1};
     }
 

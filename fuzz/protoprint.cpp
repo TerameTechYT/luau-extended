@@ -103,6 +103,7 @@ static const std::string kNames[] = {
     "match",
     "math",
     "json",
+    "toml"
     "max",
     "maxn",
     "min",
