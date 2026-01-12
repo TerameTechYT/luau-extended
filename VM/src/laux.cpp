@@ -560,8 +560,6 @@ void luaL_pushresultsize(luaL_Strbuf* B, size_t size)
 
 // }======================================================
 
-#define MAX_DEPTH 16
-
 static void add_escaped(luaL_Buffer* buf, const char* s, size_t len)
 {
     const char* p = s;
@@ -635,7 +633,7 @@ static void add_number(luaL_Buffer* buf, lua_Number num)
 
 static void serialize_table(lua_State* L, int idx, int seen_index, luaL_Buffer* buf, int depth)
 {
-    if (depth > MAX_DEPTH)
+    if (depth > LUA_MAXTTSDEPTH)
     {
         luaL_addstring(buf, "<...>");
         return;
@@ -724,7 +722,7 @@ static void serialize_table(lua_State* L, int idx, int seen_index, luaL_Buffer* 
 
 static void serialize_value(lua_State* L, int idx, int seen_index, luaL_Buffer* buf, int depth)
 {
-    if (depth > MAX_DEPTH)
+    if (depth > LUA_MAXTTSDEPTH)
     {
         luaL_addstring(buf, "<...>");
         return;

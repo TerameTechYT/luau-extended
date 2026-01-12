@@ -126,6 +126,11 @@
 #define LUA_MAXCAPTURES 32
 #endif
 
+// maximum depth of lua_tabletostring
+#ifndef LUA_MAXTTSDEPTH
+#define LUA_MAXTTSDEPTH 16
+#endif
+
 // }==================================================================
 
 #ifndef LUA_VECTOR_SIZE
