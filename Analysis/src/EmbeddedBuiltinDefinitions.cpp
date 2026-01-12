@@ -392,6 +392,15 @@ declare toml: {
     serialize: @checked (input: TomlSerializable) -> string,
     deserialize: @checked (input: string) -> TomlSerializable,
 }
+)BUILTIN_SRC";
+
+static const char* const kBuiltinDefinitionYamlSrc = R"BUILTIN_SRC(
+declare type YamlSerializable = nil | boolean | number | string | {YamlSerializable} | {[string]: YamlSerializable }
+
+declare yaml: {
+    serialize: @checked (input: YamlSerializable) -> string,
+    deserialize: @checked (input: string) -> YamlSerializable,
+}
 
 )BUILTIN_SRC";
 
@@ -424,6 +433,7 @@ std::string getBuiltinDefinitionSource()
     result += kBuiltinDefinitionVectorSrc;
     result += kBuiltinDefinitionJsonSrc;
     result += kBuiltinDefinitionTomlSrc;
+    result += kBuiltinDefinitionYamlSrc;
 
     return result;
 }

@@ -1909,6 +1909,10 @@ void setTypeFunctionEnvironment(lua_State* L)
     luaopen_toml(L);
     lua_pop(L, 1);
 
+    // Register yaml library
+    luaopen_yaml(L);
+    lua_pop(L, 1);
+
     // Register base library
     luaopen_base(L);
     lua_pop(L, 1);
