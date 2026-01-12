@@ -602,7 +602,6 @@ enum LuauBuiltinFunction
     // tonumber/tostring
     LBF_TONUMBER,
     LBF_TOSTRING,
-    LBF_TOBOOLEAN,
 
     // bit32.byteswap(n)
     LBF_BIT32_BYTESWAP,
@@ -644,7 +643,10 @@ enum LuauBuiltinFunction
     // math.
     LBF_MATH_ISNAN,
     LBF_MATH_ISINF,
-    LBF_MATH_ISFINITE
+    LBF_MATH_ISFINITE,
+
+    //
+    LBF_TOBOOLEAN,
 };
 
 // Capture type, used in LOP_CAPTURE

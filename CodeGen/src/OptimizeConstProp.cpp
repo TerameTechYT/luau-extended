@@ -1287,6 +1287,7 @@ static void handleBuiltinEffects(ConstPropState& state, LuauBuiltinFunction bfid
     case LBF_GETMETATABLE:
     case LBF_TONUMBER:
     case LBF_TOSTRING:
+    case LBF_TOBOOLEAN:
     case LBF_BIT32_BYTESWAP:
     case LBF_BUFFER_READI8:
     case LBF_BUFFER_READU8:

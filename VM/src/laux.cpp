@@ -633,7 +633,7 @@ double luaL_tonumber(lua_State* L, int idx)
     case LUA_TNUMBER:
     case LUA_TSTRING:
     {
-        int isNum;
+        int isNum = 0;
         int base = luaL_optinteger(L, idx + 1, 10);
         if (base == 10)
         { // standard conversion
@@ -675,14 +675,13 @@ double luaL_tonumber(lua_State* L, int idx)
 
 int luaL_toboolean(lua_State* L, int idx)
 {
-    if (luaL_callmeta(L, idx, "__toboolean")) // is there a metafield?
-    {
-        int b = lua_toboolean(L, -1);
-        if (lua_type(L, -1) != LUA_TBOOLEAN)
-            luaL_error(L, "'__toboolean' must return a boolean");
-        return b;
-    }    
-  
+    //if (luaL_callmeta(L, idx, "__toboolean")) // is there a metafield?
+    //{
+    //    if (lua_isboolean(L, -1))
+    //        luaL_error(L, "'__toboolean' must return a boolean");
+    //    return lua_toboolean(L, -1);
+    //}
+
     switch (lua_type(L, idx))
     {
     case LUA_TNIL:
@@ -693,6 +692,12 @@ int luaL_toboolean(lua_State* L, int idx)
     case LUA_TBOOLEAN:
     {
         lua_pushboolean(L, lua_toboolean(L, idx));
+        break;
+    }
+    case LUA_TNUMBER:
+    {
+        double n = lua_tonumber(L, idx);
+        lua_pushboolean(L, n == 1);
         break;
     }
     case LUA_TSTRING:
@@ -707,5 +712,6 @@ int luaL_toboolean(lua_State* L, int idx)
         break;
     }
     }
+    luaL_checkany(L, idx);
     return lua_toboolean(L, -1);
 }

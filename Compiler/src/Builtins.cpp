@@ -532,6 +532,9 @@ BuiltinInfo getBuiltinInfo(int bfid)
     case LBF_TOSTRING:
         return {1, 1};
 
+    case LBF_TOBOOLEAN:
+        return {1, 1};
+
     case LBF_BIT32_BYTESWAP:
         return {1, 1, BuiltinInfo::Flag_NoneSafe};
 

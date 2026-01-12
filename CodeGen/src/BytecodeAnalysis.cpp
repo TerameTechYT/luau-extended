@@ -445,6 +445,9 @@ static void applyBuiltinCall(LuauBuiltinFunction bfid, BytecodeTypes& types)
     case LBF_TOSTRING:
         types.result = LBC_TYPE_STRING;
         break;
+    case LBF_TOBOOLEAN:
+        types.result = LBC_TYPE_BOOLEAN;
+        break;
     case LBF_BIT32_BYTESWAP:
         types.result = LBC_TYPE_NUMBER;
         types.a = LBC_TYPE_NUMBER;
