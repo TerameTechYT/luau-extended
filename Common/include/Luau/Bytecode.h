@@ -602,6 +602,7 @@ enum LuauBuiltinFunction
     // tonumber/tostring
     LBF_TONUMBER,
     LBF_TOSTRING,
+    LBF_TOBOOLEAN,
 
     // bit32.byteswap(n)
     LBF_BIT32_BYTESWAP,

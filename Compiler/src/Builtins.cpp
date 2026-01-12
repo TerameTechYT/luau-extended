@@ -78,6 +78,8 @@ static int getBuiltinFunctionId(const Builtin& builtin, const CompileOptions& op
         return LBF_TONUMBER;
     if (builtin.isGlobal("tostring"))
         return LBF_TOSTRING;
+    if (builtin.isGlobal("toboolean"))
+        return LBF_TOBOOLEAN;
 
     if (builtin.object == "math")
     {

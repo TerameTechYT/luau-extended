@@ -54,6 +54,8 @@ LUALIB_API const char* luaL_tolstring(lua_State* L, int idx, size_t* len);
 
 LUALIB_API double luaL_tonumber(lua_State* L, int idx);
 
+LUALIB_API int luaL_toboolean(lua_State* L, int idx);
+
 LUALIB_API lua_State* luaL_newstate(void);
 
 LUALIB_API const char* luaL_findtable(lua_State* L, int idx, const char* fname, int szhint);

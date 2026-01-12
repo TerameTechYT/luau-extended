@@ -34,13 +34,6 @@ static int luaB_print(lua_State* L)
     return 0;
 }
 
-static int luaB_tonumber(lua_State* L)
-{
-    luaL_checkany(L, 1);
-    luaL_tonumber(L, 1);
-    return 1;
-}
-
 static int luaB_error(lua_State* L)
 {
     int level = luaL_optinteger(L, 2, 1);
@@ -407,10 +400,24 @@ static int luaB_xpcallcont(lua_State* L, int status)
     }
 }
 
+static int luaB_tonumber(lua_State* L)
+{
+    luaL_checkany(L, 1);
+    luaL_tonumber(L, 1);
+    return 1;
+}
+
 static int luaB_tostring(lua_State* L)
 {
     luaL_checkany(L, 1);
     luaL_tolstring(L, 1, NULL);
+    return 1;
+}
+
+static int luaB_toboolean(lua_State* L)
+{
+    luaL_checkany(L, 1);
+    luaL_toboolean(L, 1);
     return 1;
 }
 
@@ -450,6 +457,7 @@ static const luaL_Reg base_funcs[] = {
     {"setmetatable", luaB_setmetatable},
     {"tonumber", luaB_tonumber},
     {"tostring", luaB_tostring},
+    {"toboolean", luaB_toboolean},
     {"type", luaB_type},
     {"typeof", luaB_typeof},
     {NULL, NULL},

@@ -625,8 +625,7 @@ double luaL_tonumber(lua_State* L, int idx)
         if (!isNum)
             luaL_error(L, "'__tonumber' must return a number");
         return n;
-    }
-
+      
     switch (lua_type(L, idx))
     {
     case LUA_TBOOLEAN:
@@ -671,4 +670,41 @@ double luaL_tonumber(lua_State* L, int idx)
     }
     lua_pushnil(L);
     return 0;
+}
+
+int luaL_toboolean(lua_State* L, int idx)
+{
+    if (luaL_callmeta(L, idx, "__toboolean")) // is there a metafield?
+    {
+        int b = lua_toboolean(L, -1);
+        if (lua_type(L, -1) != LUA_TBOOLEAN)
+            luaL_error(L, "'__toboolean' must return a boolean");
+        return b;
+    }    
+  
+    switch (lua_type(L, idx))
+    {
+    case LUA_TNIL:
+    {
+        lua_pushboolean(L, 0); // nil is commonly associated with false
+        break;
+    }
+    case LUA_TBOOLEAN:
+    {
+        lua_pushboolean(L, lua_toboolean(L, idx));
+        break;
+    }
+    case LUA_TSTRING:
+    {
+        const char* s = luaL_tolstring(L, idx, NULL);
+        lua_pushboolean(L, strcmp(s, "true") == 0 || strcmp(s, "1") == 0);
+        break;
+    }
+    default:
+    {
+        lua_pushnil(L); // anything else is nil
+        break;
+    }
+    }
+    return lua_toboolean(L, -1);
 }
