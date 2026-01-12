@@ -386,7 +386,7 @@ declare json: {
 )BUILTIN_SRC";
 
 static const char* const kBuiltinDefinitionTomlSrc = R"BUILTIN_SRC(
-declare type TomlSerializable = boolean | number | string | {TomlSerializable} | {[string]: TomlSerializable }
+declare type TomlSerializable = nil | boolean | number | string | {TomlSerializable} | {[string]: TomlSerializable }
 
 declare toml: {
     serialize: @checked (input: TomlSerializable) -> string,

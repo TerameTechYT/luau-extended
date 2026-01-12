@@ -77,23 +77,34 @@ static toml::table encode_lua_table(lua_State* L, int idx, std::unordered_set<co
 
 static toml::array encode_lua_array(lua_State* L, int idx, std::unordered_set<const void*>& seen);
 
-static bool is_array(lua_State* L, int idx)
+static bool is_array(lua_State* L, int index)
 {
-    idx = lua_absindex(L, idx);
-    int len = (int)lua_objlen(L, idx);
+    index = lua_absindex(L, index);
+
+    int len = (int)lua_objlen(L, index);
 
     lua_pushnil(L);
-    while (lua_next(L, idx))
+    while (lua_next(L, index) != 0)
     {
-        if (lua_type(L, -2) == LUA_TNUMBER || lua_tointeger(L, -2) < 1 || lua_tointeger(L, -2) > len)
+        if (lua_type(L, -2) != LUA_TNUMBER)
         {
             lua_pop(L, 2);
             return false;
         }
+
+        lua_Integer k = lua_tointeger(L, -2);
+        if (k < 1 || k > len)
+        {
+            lua_pop(L, 2);
+            return false;
+        }
+
         lua_pop(L, 1);
     }
+
     return true;
 }
+
 
 static toml::value<std::string> encode_string(lua_State* L, int idx)
 {
@@ -112,8 +123,11 @@ static toml::value<bool> encode_boolean(lua_State* L, int idx)
 
 static toml::array encode_lua_array(lua_State* L, int idx, std::unordered_set<const void*>& seen)
 {
-    toml::array arr;
+    idx = lua_absindex(L, idx);
+
     int len = (int)lua_objlen(L, idx);
+    toml::array arr;
+
     for (int i = 1; i <= len; ++i)
     {
         lua_rawgeti(L, idx, i);
@@ -139,35 +153,40 @@ static toml::array encode_lua_array(lua_State* L, int idx, std::unordered_set<co
         }
         lua_pop(L, 1);
     }
+
     return arr;
 }
 
 static toml::table encode_lua_table(lua_State* L, int idx, std::unordered_set<const void*>& seen)
 {
-    toml::table tbl;
     idx = lua_absindex(L, idx);
+
     const void* ptr = lua_topointer(L, idx);
     if (seen.count(ptr))
         luaL_error(L, "cyclic tables not allowed in toml");
+
     seen.insert(ptr);
 
+    toml::table tbl;
+
     lua_pushnil(L);
-    while (lua_next(L, idx))
+    while (lua_next(L, idx) != 0)
     {
         if (!lua_isstring(L, -2))
             luaL_error(L, "toml keys must be strings");
+
         std::string key = lua_tostring(L, -2);
 
         switch (lua_type(L, -1))
         {
         case LUA_TSTRING:
-            tbl.insert(key, encode_string(L, -1));
+            tbl.insert(key, toml::value<std::string>(lua_tostring(L, -1)));
             break;
         case LUA_TNUMBER:
-            tbl.insert(key, encode_number(L, -1));
+            tbl.insert(key, toml::value<double>(lua_tonumber(L, -1)));
             break;
         case LUA_TBOOLEAN:
-            tbl.insert(key, encode_boolean(L, -1));
+            tbl.insert(key, toml::value<bool>(lua_toboolean(L, -1) != 0));
             break;
         case LUA_TTABLE:
             if (is_array(L, -1))
@@ -175,8 +194,10 @@ static toml::table encode_lua_table(lua_State* L, int idx, std::unordered_set<co
             else
                 tbl.insert(key, encode_lua_table(L, -1, seen));
             break;
+        case LUA_TNIL:
+            break;
         default:
-            luaL_error(L, "unsupported lua type for toml table");
+            luaL_error(L, "unsupported Lua type for toml serialization");
         }
 
         lua_pop(L, 1);
@@ -186,6 +207,7 @@ static toml::table encode_lua_table(lua_State* L, int idx, std::unordered_set<co
     return tbl;
 }
 
+
 static int tomlserialize(lua_State* L)
 {
     luaL_checktype(L, 1, LUA_TTABLE);
@@ -194,7 +216,7 @@ static int tomlserialize(lua_State* L)
     toml::table tbl = encode_lua_table(L, 1, seen);
 
     std::ostringstream oss;
-    oss << tbl; // streams TOML text
+    oss << tbl;
 
     std::string out = oss.str();
     lua_pushlstring(L, out.c_str(), out.size());
