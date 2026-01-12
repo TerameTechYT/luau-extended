@@ -133,17 +133,14 @@ static bool is_array(lua_State* L, int index, int& len)
     index = lua_absindex(L, index);
     len = lua_objlen(L, index);
 
-    if (len == 0)
+    lua_pushnil(L);
+    if (lua_next(L, index) == 0)
     {
-        // check if table has *any* keys
-        lua_pushnil(L);
-        if (!lua_next(L, index))
-            return false; // empty object
-        lua_pop(L, 2);
+        return true;
     }
+    lua_pop(L, 2);
 
 
-    // Check array part 1..len
     for (int i = 1; i <= len; ++i)
     {
         lua_rawgeti(L, index, i);
@@ -155,18 +152,24 @@ static bool is_array(lua_State* L, int index, int& len)
         lua_pop(L, 1);
     }
 
-    // Check for non-array keys
     lua_pushnil(L);
-    while (lua_next(L, index))
+    while (lua_next(L, index) != 0)
     {
-        // key at -2, value at -1
+
         if (lua_type(L, -2) != LUA_TNUMBER)
         {
             lua_pop(L, 2);
             return false;
         }
 
-        lua_Integer k = lua_tointeger(L, -2);
+        lua_Number kn = lua_tonumber(L, -2);
+        lua_Integer k = (lua_Integer)kn;
+        if ((lua_Number)k != kn)
+        {
+            lua_pop(L, 2);
+            return false;
+        }
+
         if (k < 1 || k > len)
         {
             lua_pop(L, 2);
@@ -178,7 +181,6 @@ static bool is_array(lua_State* L, int index, int& len)
 
     return true;
 }
-
 
 
 static json encode_value(lua_State* L, int index, std::unordered_set<const void*>& seen);
