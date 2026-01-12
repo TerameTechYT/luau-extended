@@ -163,7 +163,7 @@ static const std::string kNames[] = {
     "time",
     "tonumber",
     "tostring",
-    "tostring",
+    "toboolean",
     "traceback",
     "type",
     "typeof",

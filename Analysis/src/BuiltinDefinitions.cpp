@@ -601,6 +601,7 @@ void registerBuiltinGlobals(Frontend& frontend, GlobalTypes& globals, bool typeC
         "rawequal",
         "tonumber",
         "tostring",
+        "toboolean",
         "type",
         "typeof",
     };
