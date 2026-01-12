@@ -269,6 +269,14 @@ static int getBuiltinFunctionId(const Builtin& builtin, const CompileOptions& op
             return LBF_VECTOR_LERP;
     }
 
+    if (builtin.object == "json")
+    {
+        if (builtin.method == "serialize")
+            return LBF_JSON_SERIALIZE;
+        if (builtin.method == "deserialize")
+            return LBF_JSON_DESERIALIZE;
+    }
+
     if (options.vectorCtor)
     {
         if (options.vectorLib)
@@ -582,6 +590,11 @@ BuiltinInfo getBuiltinInfo(int bfid)
         return {1, 1, BuiltinInfo::Flag_NoneSafe};
     case LBF_MATH_ISFINITE:
         return {1, 1, BuiltinInfo::Flag_NoneSafe};
+
+    case LBF_JSON_SERIALIZE:
+        return {1, 1};
+    case LBF_JSON_DESERIALIZE:
+        return {1, 1};
     }
 
     LUAU_UNREACHABLE();

@@ -647,6 +647,9 @@ enum LuauBuiltinFunction
 
     //
     LBF_TOBOOLEAN,
+
+    LBF_JSON_SERIALIZE,
+    LBF_JSON_DESERIALIZE,
 };
 
 // Capture type, used in LOP_CAPTURE
