@@ -606,7 +606,7 @@ BuiltinInfo getBuiltinInfo(int bfid)
 
     case LBF_TOML_SERIALIZE:
         return {1, 1};
-    case LBF_TOML_SERIALIZE:
+    case LBF_TOML_DESERIALIZE:
         return {1, 1};
     }
 
