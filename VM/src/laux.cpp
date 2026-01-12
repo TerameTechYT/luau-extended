@@ -625,7 +625,8 @@ double luaL_tonumber(lua_State* L, int idx)
         if (!isNum)
             luaL_error(L, "'__tonumber' must return a number");
         return n;
-      
+    }
+
     switch (lua_type(L, idx))
     {
     case LUA_TBOOLEAN:
