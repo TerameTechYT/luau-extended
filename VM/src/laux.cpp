@@ -10,6 +10,8 @@
 #include "lnumutils.h"
 
 #include <string.h>
+#include <cstdlib>
+#include <ctype.h>
 
 LUAU_FASTFLAG(LuauStacklessPcall)
 
@@ -612,4 +614,61 @@ const char* luaL_tolstring(lua_State* L, int idx, size_t* len)
     }
     }
     return lua_tolstring(L, -1, len);
+}
+
+double luaL_tonumber(lua_State* L, int idx)
+{
+    if (luaL_callmeta(L, idx, "__tonumber")) // is there a metafield?
+    {
+        int isNum;
+        double n = lua_tonumberx(L, -1, &isNum);
+        if (!isNum)
+            luaL_error(L, "'__tonumber' must return a number");
+        return n;
+    }
+
+    switch (lua_type(L, idx))
+    {
+    case LUA_TBOOLEAN:
+    case LUA_TNUMBER:
+    case LUA_TSTRING:
+    {
+        int isNum;
+        int base = luaL_optinteger(L, idx + 1, 10);
+        if (base == 10)
+        { // standard conversion
+            double n = lua_tonumberx(L, idx, &isNum);
+            if (isNum)
+            {
+                lua_pushnumber(L, n);
+                return n;
+            }
+            luaL_checkany(L, idx); // error if we don't have any argument
+        }
+        else
+        {
+            const char* s1 = luaL_checkstring(L, idx);
+            luaL_argcheck(L, 2 <= base && base <= 36, 2, "base out of range");
+            char* s2;
+            unsigned long long n;
+            n = strtoull(s1, &s2, base);
+            if (s1 != s2)
+            { // at least one valid digit?
+                while (isspace((unsigned char)(*s2)))
+                    s2++; // skip trailing spaces
+                if (*s2 == '\0')
+                { // no invalid trailing characters?
+                    lua_pushnumber(L, (double)n);
+                    return (double)n;
+                }
+            }
+        }
+        break;
+    }
+    case LUA_TNIL:
+    default:
+        break;
+    }
+    lua_pushnil(L);
+    return 0;
 }
