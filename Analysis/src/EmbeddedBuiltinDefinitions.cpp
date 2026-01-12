@@ -375,6 +375,16 @@ declare vector: {
 
 )BUILTIN_SRC";
 
+static const char* const kBuiltingDefinitionJsonSrc = R"BUILTIN_SRC(
+declare type JsonSerializable = nil | boolean | number | string | {JsonSerializable} | {[string]: JsonSerializable }
+
+declare json: {
+    serialize: @checked (input: JsonSerializable) -> string,
+    deserialize: @checked (input: string) -> JsonSerializable,
+}
+
+)BUILTIN_SRC";
+
 std::string getBuiltinDefinitionSource()
 {
     std::string result = kBuiltinDefinitionBaseSrc;
@@ -402,6 +412,7 @@ std::string getBuiltinDefinitionSource()
     result += kBuiltinDefinitionUtf8Src;
     result += kBuiltinDefinitionBufferSrc;
     result += kBuiltinDefinitionVectorSrc;
+    result += kBuiltingDefinitionJsonSrc;
 
     return result;
 }

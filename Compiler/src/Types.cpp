@@ -754,6 +754,7 @@ struct TypeMapVisitor : AstVisitor
             case LBF_TYPEOF:
             case LBF_STRING_SUB:
             case LBF_TOSTRING:
+            case LBF_JSON_SERIALIZE:
                 recordResolvedType(node, &builtinTypes.stringType);
                 break;
 
@@ -761,6 +762,7 @@ struct TypeMapVisitor : AstVisitor
             case LBF_MATH_ISINF:
             case LBF_MATH_ISFINITE:
             case LBF_RAWEQUAL:
+            case LBF_TOBOOLEAN:
                 recordResolvedType(node, &builtinTypes.booleanType);
                 break;
 

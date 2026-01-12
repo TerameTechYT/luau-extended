@@ -583,6 +583,7 @@ void registerBuiltinGlobals(Frontend& frontend, GlobalTypes& globals, bool typeC
         "bit32",
         "utf8",
         "buffer",
+        "json",
 
         // Globals
         "assert",

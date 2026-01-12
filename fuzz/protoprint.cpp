@@ -24,6 +24,9 @@ static const std::string kNames[] = {
     "__sub",
     "__type",
     "__unm",
+    "__tostring",
+    "__tonumber",
+    "__toboolean",
     "abs",
     "acos",
     "arshift",
@@ -99,6 +102,7 @@ static const std::string kNames[] = {
     "lshift",
     "match",
     "math",
+    "json",
     "max",
     "maxn",
     "min",
@@ -196,6 +200,8 @@ static const std::string kNames[] = {
     "intersectionof",
     "newtable",
     "newfunction",
+    "serialize",
+    "deserialize"
 };
 
 static const std::string kTypes[] = {

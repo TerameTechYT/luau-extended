@@ -1901,6 +1901,10 @@ void setTypeFunctionEnvironment(lua_State* L)
     luaopen_buffer(L);
     lua_pop(L, 1);
 
+    // Register json library
+    luaopen_json(L);
+    lua_pop(L, 1);
+
     // Register base library
     luaopen_base(L);
     lua_pop(L, 1);
