@@ -19,6 +19,7 @@ static const luaL_Reg lualibs[] = {
     {LUA_JSONLIBNAME, luaopen_json},
     {LUA_TOMLLIBNAME, luaopen_toml},
     {LUA_YAMLLIBNAME, luaopen_yaml},
+    {LUA_XMLLIBNAME, luaopen_xml},
     {NULL, NULL},
 };
 

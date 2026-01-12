@@ -404,6 +404,25 @@ declare yaml: {
 
 )BUILTIN_SRC";
 
+static const char* const kBuiltinDefinitionXmlSrc = R"BUILTIN_SRC(
+declare type XmlAttributes = {[string]: string}
+
+declare type XmlNode = {
+    tag: string,
+    attr: XmlAttributes?,
+    text: string?,
+    children: { XmlNode }?
+}
+
+declare type XmlDocument = XmlNode | { XmlNode }
+
+declare xml: {
+    serialize: @checked (input: XmlDocument) -> string,
+    deserialize: @checked (input: string) -> XmlDocument,
+}
+)BUILTIN_SRC";
+
+
 std::string getBuiltinDefinitionSource()
 {
     std::string result = kBuiltinDefinitionBaseSrc;
@@ -434,6 +453,7 @@ std::string getBuiltinDefinitionSource()
     result += kBuiltinDefinitionJsonSrc;
     result += kBuiltinDefinitionTomlSrc;
     result += kBuiltinDefinitionYamlSrc;
+    result += kBuiltinDefinitionXmlSrc;
 
     return result;
 }

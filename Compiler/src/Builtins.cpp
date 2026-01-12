@@ -292,6 +292,15 @@ static int getBuiltinFunctionId(const Builtin& builtin, const CompileOptions& op
         if (builtin.method == "deserialize")
             return LBF_YAML_DESERIALIZE;
     }
+  
+    if (builtin.object == "xml")
+    {
+        if (builtin.method == "serialize")
+            return LBF_XML_SERIALIZE;
+        if (builtin.method == "deserialize")
+            return LBF_XML_DESERIALIZE;
+    }
+  
 
     if (options.vectorCtor)
     {
@@ -608,17 +617,14 @@ BuiltinInfo getBuiltinInfo(int bfid)
         return {1, 1, BuiltinInfo::Flag_NoneSafe};
 
     case LBF_JSON_SERIALIZE:
-        return {1, 1};
-    case LBF_JSON_DESERIALIZE:
-        return {1, 1};
-
     case LBF_TOML_SERIALIZE:
-        return {1, 1};
-    case LBF_TOML_DESERIALIZE:
-        return {1, 1};
-
     case LBF_YAML_SERIALIZE:
+    case LBF_XML_SERIALIZE:
         return {1, 1};
+        
+    case LBF_JSON_DESERIALIZE:
+    case LBF_TOML_DESERIALIZE:
+    case LBF_XML_DESERIALIZE:
     case LBF_YAML_DESERIALIZE:
         return {1, 1};
     }
