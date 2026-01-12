@@ -32,6 +32,7 @@ add_library(Luau.CodeGen STATIC)
 add_library(Luau.VM STATIC)
 add_library(Luau.Require STATIC)
 add_library(isocline STATIC)
+add_library(yaml-cpp STATIC)
 
 if(LUAU_BUILD_CLI)
     add_executable(Luau.Repl.CLI)
@@ -97,14 +98,14 @@ target_link_libraries(Luau.CodeGen PUBLIC Luau.Common)
 
 target_compile_features(Luau.VM PRIVATE cxx_std_11)
 target_include_directories(Luau.VM PUBLIC VM/include)
-target_link_libraries(Luau.VM PUBLIC Luau.Common)
+target_link_libraries(Luau.VM PUBLIC Luau.Common yaml-cpp)
 
 target_compile_features(Luau.Require PUBLIC cxx_std_17)
 target_include_directories(Luau.Require PUBLIC Require/include)
 target_link_libraries(Luau.Require PUBLIC Luau.Config Luau.VM)
 
 target_include_directories(isocline PUBLIC extern/isocline/include)
-
+target_include_directories(yaml-cpp PUBLIC extern/yaml-cpp/include)
 target_include_directories(Luau.VM.Internals INTERFACE VM/src)
 
 set(LUAU_OPTIONS)
@@ -156,6 +157,7 @@ target_compile_options(Luau.Analysis PRIVATE ${LUAU_OPTIONS})
 target_compile_options(Luau.CLI.lib PRIVATE ${LUAU_OPTIONS})
 target_compile_options(Luau.CodeGen PRIVATE ${LUAU_OPTIONS})
 target_compile_options(Luau.VM PRIVATE ${LUAU_OPTIONS})
+target_compile_options(yaml-cpp PRIVATE ${LUAU_OPTIONS})
 target_compile_options(isocline PRIVATE ${LUAU_OPTIONS} ${ISOCLINE_OPTIONS})
 
 if(LUAU_EXTERN_C)
@@ -166,6 +168,8 @@ if(LUAU_EXTERN_C)
     target_compile_definitions(Luau.Compiler PUBLIC LUACODE_API=extern\"C\")
     target_compile_definitions(Luau.CodeGen PUBLIC LUACODEGEN_API=extern\"C\")
 endif()
+
+target_compile_definitions(yaml-cpp PUBLIC YAML_CPP_STATIC_DEFINE)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND MSVC_VERSION GREATER_EQUAL 1924)
     # disable partial redundancy elimination which regresses interpreter codegen substantially in VS2022:

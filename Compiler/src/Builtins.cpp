@@ -285,6 +285,14 @@ static int getBuiltinFunctionId(const Builtin& builtin, const CompileOptions& op
             return LBF_TOML_DESERIALIZE;
     }
 
+    if (builtin.object == "yaml")
+    {
+        if (builtin.method == "serialize")
+            return LBF_YAML_SERIALIZE;
+        if (builtin.method == "deserialize")
+            return LBF_YAML_DESERIALIZE;
+    }
+
     if (options.vectorCtor)
     {
         if (options.vectorLib)
@@ -607,6 +615,11 @@ BuiltinInfo getBuiltinInfo(int bfid)
     case LBF_TOML_SERIALIZE:
         return {1, 1};
     case LBF_TOML_DESERIALIZE:
+        return {1, 1};
+
+    case LBF_YAML_SERIALIZE:
+        return {1, 1};
+    case LBF_YAML_DESERIALIZE:
         return {1, 1};
     }
 
