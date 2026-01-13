@@ -98,14 +98,17 @@ target_link_libraries(Luau.CodeGen PUBLIC Luau.Common)
 target_compile_features(Luau.VM PRIVATE cxx_std_11)
 target_include_directories(Luau.VM PUBLIC VM/include)
 target_link_libraries(Luau.VM PUBLIC Luau.Common Luau.External)
+target_include_directories(Luau.VM.Internals INTERFACE VM/src)
 
 target_compile_features(Luau.Require PUBLIC cxx_std_17)
 target_include_directories(Luau.Require PUBLIC Require/include)
 target_link_libraries(Luau.Require PUBLIC Luau.Config Luau.VM)
 
 target_include_directories(Luau.External PUBLIC extern/isocline/include)
+target_include_directories(Luau.External PUBLIC extern/json/include)
+target_include_directories(Luau.External PUBLIC extern/toml/include)
 target_include_directories(Luau.External PUBLIC extern/yaml-cpp/include)
-target_include_directories(Luau.VM.Internals INTERFACE VM/src)
+target_include_directories(Luau.External PUBLIC extern/xml/include)
 
 set(LUAU_OPTIONS)
 

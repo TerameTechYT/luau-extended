@@ -3,7 +3,7 @@
 #include "lualib.h"
 #include "lstate.h"
 
-#include "json.hpp"
+#include <json.hpp>
 #include <unordered_set>
 
 using json = nlohmann::json;

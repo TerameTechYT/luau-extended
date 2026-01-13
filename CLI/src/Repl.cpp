@@ -17,7 +17,7 @@
 #include "Luau/ReplRequirer.h"
 #include "Luau/Require.h"
 
-#include "isocline.h"
+#include <isocline.h>
 
 #include <memory>
 #include <string>

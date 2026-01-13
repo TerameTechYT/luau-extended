@@ -3,7 +3,7 @@
 #include "lualib.h"
 #include "lstate.h"
 
-#include "toml.hpp"
+#include <toml.hpp>
 #include <unordered_set>
 
 static void push_toml_value(lua_State* L, const toml::node& node);

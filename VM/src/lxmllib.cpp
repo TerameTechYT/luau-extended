@@ -1,6 +1,6 @@
 #include "lualib.h"
 #include "lstate.h"
-#include "tinyxml2.h"
+#include <xml.h>
 
 #include <string>
 #include <sstream>

@@ -377,7 +377,6 @@ target_sources(Luau.VM PRIVATE
     VM/src/lvmexecute.cpp
     VM/src/lvmload.cpp
     VM/src/lvmutils.cpp
-    VM/src/tinyxml2.cpp
 
     VM/src/lapi.h
     VM/src/lbuffer.h
@@ -526,6 +525,13 @@ target_sources(Luau.External PRIVATE
     extern/yaml-cpp/src/tag.h
     extern/yaml-cpp/src/tag.cpp
     extern/yaml-cpp/src/token.h
+
+    extern/json/include/json.hpp
+
+    extern/toml/include/toml.hpp
+
+    extern/xml/include/xml.h
+    extern/xml/src/xml.cpp
 )
 
 # Common sources shared between all CLI apps
