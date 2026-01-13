@@ -157,6 +157,9 @@ LUALIB_API int luaopen_toml(lua_State* L);
 #define LUA_YAMLLIBNAME "yaml"
 LUALIB_API int luaopen_yaml(lua_State* L);
 
+#define LUA_XMLLIBNAME "xml"
+LUALIB_API int luaopen_xml(lua_State* L);
+
 // open all builtin libraries
 LUALIB_API void luaL_openlibs(lua_State* L);
 

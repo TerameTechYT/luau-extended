@@ -653,9 +653,12 @@ enum LuauBuiltinFunction
 
     LBF_TOML_SERIALIZE,
     LBF_TOML_DESERIALIZE,
-
+  
     LBF_YAML_SERIALIZE,
     LBF_YAML_DESERIALIZE,
+  
+    LBF_XML_SERIALIZE,
+    LBF_XML_DESERIALIZE,
 };
 
 // Capture type, used in LOP_CAPTURE

@@ -587,6 +587,7 @@ void registerBuiltinGlobals(Frontend& frontend, GlobalTypes& globals, bool typeC
         "json",
         "toml",
         "yaml",
+        "xml",
 
         // Globals
         "assert",
