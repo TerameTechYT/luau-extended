@@ -397,9 +397,133 @@ target_sources(Luau.VM PRIVATE
     VM/src/lvm.h
 )
 
-target_sources(isocline PRIVATE
+# Luau.External Sources
+target_sources(Luau.External PRIVATE
     extern/isocline/include/isocline.h
+
+    #extern/isocline/src/attr.h
+    #extern/isocline/src/attr.c
+    #extern/isocline/src/bbcode.h
+    #extern/isocline/src/bbcode.c
+    #extern/isocline/src/bbcode_colors.c
+    #extern/isocline/src/common.h
+    #extern/isocline/src/common.c
+    #extern/isocline/src/completers.c
+    #extern/isocline/src/completions.h
+    #extern/isocline/src/completions.c
+    #extern/isocline/src/editline.c
+    #extern/isocline/src/editline_completion.c
+    #extern/isocline/src/editline_help.c
+    #extern/isocline/src/editline_history.c
+    #extern/isocline/src/env.h
+    #extern/isocline/src/highlight.h
+    #extern/isocline/src/highlight.c
+    #extern/isocline/src/history.h
+    #extern/isocline/src/history.c
     extern/isocline/src/isocline.c
+    #extern/isocline/src/stringbuf.h
+    #extern/isocline/src/stringbuf.c
+    #extern/isocline/src/term.h
+    #extern/isocline/src/term.c
+    #extern/isocline/src/term_color.c
+    #extern/isocline/src/tty.h
+    #extern/isocline/src/tty.c
+    #extern/isocline/src/tty_esc.c
+    #extern/isocline/src/undo.h
+    #extern/isocline/src/undo.c
+    #extern/isocline/src/wcwidth.c
+
+    extern/yaml-cpp/include/yaml-cpp/contrib/anchordict.h
+    extern/yaml-cpp/include/yaml-cpp/contrib/graphbuilder.h
+
+    extern/yaml-cpp/include/yaml-cpp/node/detail/impl.h
+    extern/yaml-cpp/include/yaml-cpp/node/detail/iterator.h
+    extern/yaml-cpp/include/yaml-cpp/node/detail/iterator_fwd.h
+    extern/yaml-cpp/include/yaml-cpp/node/detail/memory.h
+    extern/yaml-cpp/include/yaml-cpp/node/detail/node.h
+    extern/yaml-cpp/include/yaml-cpp/node/detail/node_data.h
+    extern/yaml-cpp/include/yaml-cpp/node/detail/node_iterator.h
+    extern/yaml-cpp/include/yaml-cpp/node/detail/node_ref.h
+
+    extern/yaml-cpp/include/yaml-cpp/node/convert.h
+    extern/yaml-cpp/include/yaml-cpp/node/emit.h
+    extern/yaml-cpp/include/yaml-cpp/node/impl.h
+    extern/yaml-cpp/include/yaml-cpp/node/iterator.h
+    extern/yaml-cpp/include/yaml-cpp/node/node.h
+    extern/yaml-cpp/include/yaml-cpp/node/parse.h
+    extern/yaml-cpp/include/yaml-cpp/node/type.h
+
+    extern/yaml-cpp/include/yaml-cpp/anchor.h
+    extern/yaml-cpp/include/yaml-cpp/depthguard.h
+    extern/yaml-cpp/include/yaml-cpp/dll.h
+    extern/yaml-cpp/include/yaml-cpp/emitfromevents.h
+    extern/yaml-cpp/include/yaml-cpp/emitter.h
+    extern/yaml-cpp/include/yaml-cpp/emitterdef.h
+    extern/yaml-cpp/include/yaml-cpp/emittermanip.h
+    extern/yaml-cpp/include/yaml-cpp/emitterstyle.h
+    extern/yaml-cpp/include/yaml-cpp/eventhandler.h
+    extern/yaml-cpp/include/yaml-cpp/exceptions.h
+    extern/yaml-cpp/include/yaml-cpp/mark.h
+    extern/yaml-cpp/include/yaml-cpp/noexcept.h
+    extern/yaml-cpp/include/yaml-cpp/null.h
+    extern/yaml-cpp/include/yaml-cpp/ostream_wrapper.h
+    extern/yaml-cpp/include/yaml-cpp/stlemitter.h
+    extern/yaml-cpp/include/yaml-cpp/traits.h
+    extern/yaml-cpp/include/yaml-cpp/yaml.h
+
+    extern/yaml-cpp/src/contrib/graphbuilder.cpp
+    extern/yaml-cpp/src/contrib/graphbuilderadapter.h
+    extern/yaml-cpp/src/contrib/graphbuilderadapter.cpp
+
+    extern/yaml-cpp/src/binary.cpp
+    extern/yaml-cpp/src/collectionstack.h
+    extern/yaml-cpp/src/convert.cpp
+    extern/yaml-cpp/src/depthguard.cpp
+    extern/yaml-cpp/src/directives.h
+    extern/yaml-cpp/src/directives.cpp
+    extern/yaml-cpp/src/emit.cpp
+    extern/yaml-cpp/src/emitfromevents.cpp
+    extern/yaml-cpp/src/emitter.cpp
+    extern/yaml-cpp/src/emitterstate.h
+    extern/yaml-cpp/src/emitterstate.cpp
+    extern/yaml-cpp/src/emitterutils.cpp
+    extern/yaml-cpp/src/exceptions.cpp
+    extern/yaml-cpp/src/exp.h
+    extern/yaml-cpp/src/exp.cpp
+    extern/yaml-cpp/src/indentation.h
+    extern/yaml-cpp/src/memory.cpp
+    extern/yaml-cpp/src/node.cpp
+    extern/yaml-cpp/src/nodebuilder.h
+    extern/yaml-cpp/src/nodebuilder.cpp
+    extern/yaml-cpp/src/nodeevents.h
+    extern/yaml-cpp/src/nodeevents.cpp
+    extern/yaml-cpp/src/node_data.cpp
+    extern/yaml-cpp/src/null.cpp
+    extern/yaml-cpp/src/ostream_wrapper.cpp
+    extern/yaml-cpp/src/parse.cpp
+    extern/yaml-cpp/src/parser.cpp
+    extern/yaml-cpp/src/ptr_vector.h
+    extern/yaml-cpp/src/regeximpl.h
+    extern/yaml-cpp/src/regex_yaml.h
+    extern/yaml-cpp/src/regex_yaml.cpp
+    extern/yaml-cpp/src/scanner.h
+    extern/yaml-cpp/src/scanner.cpp
+    extern/yaml-cpp/src/scanscalar.h
+    extern/yaml-cpp/src/scanscalar.cpp
+    extern/yaml-cpp/src/scantag.h
+    extern/yaml-cpp/src/scantag.cpp
+    extern/yaml-cpp/src/scantoken.cpp
+    extern/yaml-cpp/src/setting.h
+    extern/yaml-cpp/src/simplekey.cpp
+    extern/yaml-cpp/src/singledocparser.h
+    extern/yaml-cpp/src/singledocparser.cpp
+    extern/yaml-cpp/src/stream.h
+    extern/yaml-cpp/src/stream.cpp
+    extern/yaml-cpp/src/streamcharsource.h
+    extern/yaml-cpp/src/stringsource.h
+    extern/yaml-cpp/src/tag.h
+    extern/yaml-cpp/src/tag.cpp
+    extern/yaml-cpp/src/token.h
 )
 
 # Common sources shared between all CLI apps
@@ -621,41 +745,4 @@ if(TARGET Luau.Bytecode.CLI)
     # Luau.Bytecode.CLI Sources
     target_sources(Luau.Bytecode.CLI PRIVATE
         CLI/src/Bytecode.cpp)
-endif()
-
-if (TARGET yaml-cpp)
-    # yaml-cpp sources
-    target_sources(yaml-cpp PRIVATE
-        extern/yaml-cpp/src/contrib/graphbuilder.cpp
-        extern/yaml-cpp/src/contrib/graphbuilderadapter.cpp
-        extern/yaml-cpp/src/binary.cpp
-        extern/yaml-cpp/src/convert.cpp
-        extern/yaml-cpp/src/depthguard.cpp
-        extern/yaml-cpp/src/directives.cpp
-        extern/yaml-cpp/src/emit.cpp
-        extern/yaml-cpp/src/emitfromevents.cpp
-        extern/yaml-cpp/src/emitter.cpp
-        extern/yaml-cpp/src/emitterstate.cpp
-        extern/yaml-cpp/src/emitterutils.cpp
-        extern/yaml-cpp/src/exceptions.cpp
-        extern/yaml-cpp/src/exp.cpp
-        extern/yaml-cpp/src/memory.cpp
-        extern/yaml-cpp/src/node.cpp
-        extern/yaml-cpp/src/nodebuilder.cpp
-        extern/yaml-cpp/src/nodeevents.cpp
-        extern/yaml-cpp/src/node_data.cpp
-        extern/yaml-cpp/src/null.cpp
-        extern/yaml-cpp/src/ostream_wrapper.cpp
-        extern/yaml-cpp/src/parse.cpp
-        extern/yaml-cpp/src/parser.cpp
-        extern/yaml-cpp/src/regex_yaml.cpp
-        extern/yaml-cpp/src/scanner.cpp
-        extern/yaml-cpp/src/scanscalar.cpp
-        extern/yaml-cpp/src/scantag.cpp
-        extern/yaml-cpp/src/scantoken.cpp
-        extern/yaml-cpp/src/simplekey.cpp
-        extern/yaml-cpp/src/singledocparser.cpp
-        extern/yaml-cpp/src/stream.cpp
-        extern/yaml-cpp/src/tag.cpp
-    )
 endif()
