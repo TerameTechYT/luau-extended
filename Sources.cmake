@@ -535,7 +535,7 @@ target_sources(Luau.External PRIVATE
 )
 
 # Common sources shared between all CLI apps
-target_sources(Luau.CLI.lib PRIVATE
+target_sources(Luau.CLI PRIVATE
     CLI/include/Luau/FileUtils.h
     CLI/include/Luau/Flags.h
     CLI/include/Luau/VfsNavigator.h
