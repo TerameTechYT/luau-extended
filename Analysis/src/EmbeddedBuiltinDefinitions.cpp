@@ -376,7 +376,7 @@ declare vector: {
 )BUILTIN_SRC";
 
 static const char* const kBuiltinDefinitionJsonSrc = R"BUILTIN_SRC(
-declare type JsonSerializable = nil | boolean | number | string | {JsonSerializable} | {[string]: JsonSerializable }
+type JsonSerializable = nil | boolean | number | string | {JsonSerializable} | {[string]: JsonSerializable }
 
 declare json: {
     serialize: @checked (input: JsonSerializable) -> string,
@@ -386,7 +386,7 @@ declare json: {
 )BUILTIN_SRC";
 
 static const char* const kBuiltinDefinitionTomlSrc = R"BUILTIN_SRC(
-declare type TomlSerializable = nil | boolean | number | string | {TomlSerializable} | {[string]: TomlSerializable }
+type TomlSerializable = nil | boolean | number | string | {TomlSerializable} | {[string]: TomlSerializable }
 
 declare toml: {
     serialize: @checked (input: TomlSerializable) -> string,
@@ -395,7 +395,7 @@ declare toml: {
 )BUILTIN_SRC";
 
 static const char* const kBuiltinDefinitionYamlSrc = R"BUILTIN_SRC(
-declare type YamlSerializable = nil | boolean | number | string | {YamlSerializable} | {[string]: YamlSerializable }
+type YamlSerializable = nil | boolean | number | string | {YamlSerializable} | {[string]: YamlSerializable }
 
 declare yaml: {
     serialize: @checked (input: YamlSerializable) -> string,
@@ -405,16 +405,16 @@ declare yaml: {
 )BUILTIN_SRC";
 
 static const char* const kBuiltinDefinitionXmlSrc = R"BUILTIN_SRC(
-declare type XmlAttributes = {[string]: string}
+type XmlAttributes = {[string]: string}
 
-declare type XmlNode = {
+type XmlNode = {
     tag: string,
     attr: XmlAttributes?,
     text: string?,
     children: { XmlNode }?
 }
 
-declare type XmlDocument = XmlNode | { XmlNode }
+type XmlDocument = XmlNode | { XmlNode }
 
 declare xml: {
     serialize: @checked (input: XmlDocument) -> string,
