@@ -31,6 +31,7 @@ declare function error<T>(message: T, level: number?): never
 
 declare function tostring<T>(value: T): string
 declare function tonumber<T>(value: T, radix: number?): number?
+declare function toboolean<T>(value: T): boolean?
 
 declare function rawequal<T1, T2>(a: T1, b: T2): boolean
 declare function rawget<K, V>(tab: {[K]: V}, k: K): V?
