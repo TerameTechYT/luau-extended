@@ -56,7 +56,7 @@ static time_t os_timegm(struct tm* timep)
     return time_t(utc);
 }
 
-static int os_clock(lua_State* L)
+int os_clock(lua_State* L)
 {
     lua_pushnumber(L, lua_clock());
     return 1;
@@ -109,7 +109,7 @@ static int getfield(lua_State* L, const char* key, int d)
     return res;
 }
 
-static int os_date(lua_State* L)
+int os_date(lua_State* L)
 {
     const char* s = luaL_optstring(L, 1, "%c");
     time_t t = luaL_opt(L, (time_t)luaL_checknumber, 2, time(NULL));
@@ -176,7 +176,7 @@ static int os_date(lua_State* L)
     return 1;
 }
 
-static int os_time(lua_State* L)
+int os_time(lua_State* L)
 {
     time_t t;
     if (lua_isnoneornil(L, 1)) // called without args?
@@ -204,7 +204,7 @@ static int os_time(lua_State* L)
     return 1;
 }
 
-static int os_difftime(lua_State* L)
+int os_difftime(lua_State* L)
 {
     lua_pushnumber(L, difftime((time_t)(luaL_checknumber(L, 1)), (time_t)(luaL_optnumber(L, 2, 0))));
     return 1;

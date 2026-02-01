@@ -16,7 +16,7 @@
 LUAU_FASTFLAGVARIABLE(LuauMathIsNanInfFinite)
 LUAU_FASTFLAGVARIABLE(LuauMathSeedEncode)
 
-static uint32_t pcg32_random(uint64_t* state)
+uint32_t pcg32_random(uint64_t* state)
 {
     uint64_t oldstate = *state;
     *state = oldstate * 6364136223846793005ULL + (PCG32_INC | 1);
@@ -25,7 +25,7 @@ static uint32_t pcg32_random(uint64_t* state)
     return (xorshifted >> rot) | (xorshifted << ((-int32_t(rot)) & 31));
 }
 
-static void pcg32_seed(uint64_t* state, uint64_t seed)
+void pcg32_seed(uint64_t* state, uint64_t seed)
 {
     *state = 0;
     pcg32_random(state);
@@ -33,91 +33,91 @@ static void pcg32_seed(uint64_t* state, uint64_t seed)
     pcg32_random(state);
 }
 
-static int math_abs(lua_State* L)
+int math_abs(lua_State* L)
 {
     lua_pushnumber(L, fabs(luaL_checknumber(L, 1)));
     return 1;
 }
 
-static int math_sin(lua_State* L)
+int math_sin(lua_State* L)
 {
     lua_pushnumber(L, sin(luaL_checknumber(L, 1)));
     return 1;
 }
 
-static int math_sinh(lua_State* L)
+int math_sinh(lua_State* L)
 {
     lua_pushnumber(L, sinh(luaL_checknumber(L, 1)));
     return 1;
 }
 
-static int math_cos(lua_State* L)
+int math_cos(lua_State* L)
 {
     lua_pushnumber(L, cos(luaL_checknumber(L, 1)));
     return 1;
 }
 
-static int math_cosh(lua_State* L)
+int math_cosh(lua_State* L)
 {
     lua_pushnumber(L, cosh(luaL_checknumber(L, 1)));
     return 1;
 }
 
-static int math_tan(lua_State* L)
+int math_tan(lua_State* L)
 {
     lua_pushnumber(L, tan(luaL_checknumber(L, 1)));
     return 1;
 }
 
-static int math_tanh(lua_State* L)
+int math_tanh(lua_State* L)
 {
     lua_pushnumber(L, tanh(luaL_checknumber(L, 1)));
     return 1;
 }
 
-static int math_asin(lua_State* L)
+int math_asin(lua_State* L)
 {
     lua_pushnumber(L, asin(luaL_checknumber(L, 1)));
     return 1;
 }
 
-static int math_acos(lua_State* L)
+int math_acos(lua_State* L)
 {
     lua_pushnumber(L, acos(luaL_checknumber(L, 1)));
     return 1;
 }
 
-static int math_atan(lua_State* L)
+int math_atan(lua_State* L)
 {
     lua_pushnumber(L, atan(luaL_checknumber(L, 1)));
     return 1;
 }
 
-static int math_atan2(lua_State* L)
+int math_atan2(lua_State* L)
 {
     lua_pushnumber(L, atan2(luaL_checknumber(L, 1), luaL_checknumber(L, 2)));
     return 1;
 }
 
-static int math_ceil(lua_State* L)
+int math_ceil(lua_State* L)
 {
     lua_pushnumber(L, ceil(luaL_checknumber(L, 1)));
     return 1;
 }
 
-static int math_floor(lua_State* L)
+int math_floor(lua_State* L)
 {
     lua_pushnumber(L, floor(luaL_checknumber(L, 1)));
     return 1;
 }
 
-static int math_fmod(lua_State* L)
+int math_fmod(lua_State* L)
 {
     lua_pushnumber(L, fmod(luaL_checknumber(L, 1), luaL_checknumber(L, 2)));
     return 1;
 }
 
-static int math_modf(lua_State* L)
+int math_modf(lua_State* L)
 {
     double ip;
     double fp = modf(luaL_checknumber(L, 1), &ip);
@@ -126,19 +126,19 @@ static int math_modf(lua_State* L)
     return 2;
 }
 
-static int math_sqrt(lua_State* L)
+int math_sqrt(lua_State* L)
 {
     lua_pushnumber(L, sqrt(luaL_checknumber(L, 1)));
     return 1;
 }
 
-static int math_pow(lua_State* L)
+int math_pow(lua_State* L)
 {
     lua_pushnumber(L, pow(luaL_checknumber(L, 1), luaL_checknumber(L, 2)));
     return 1;
 }
 
-static int math_log(lua_State* L)
+int math_log(lua_State* L)
 {
     double x = luaL_checknumber(L, 1);
     double res;
@@ -158,31 +158,31 @@ static int math_log(lua_State* L)
     return 1;
 }
 
-static int math_log10(lua_State* L)
+int math_log10(lua_State* L)
 {
     lua_pushnumber(L, log10(luaL_checknumber(L, 1)));
     return 1;
 }
 
-static int math_exp(lua_State* L)
+int math_exp(lua_State* L)
 {
     lua_pushnumber(L, exp(luaL_checknumber(L, 1)));
     return 1;
 }
 
-static int math_deg(lua_State* L)
+int math_deg(lua_State* L)
 {
     lua_pushnumber(L, luaL_checknumber(L, 1) / RADIANS_PER_DEGREE);
     return 1;
 }
 
-static int math_rad(lua_State* L)
+int math_rad(lua_State* L)
 {
     lua_pushnumber(L, luaL_checknumber(L, 1) * RADIANS_PER_DEGREE);
     return 1;
 }
 
-static int math_frexp(lua_State* L)
+int math_frexp(lua_State* L)
 {
     int e;
     lua_pushnumber(L, frexp(luaL_checknumber(L, 1), &e));
@@ -190,13 +190,13 @@ static int math_frexp(lua_State* L)
     return 2;
 }
 
-static int math_ldexp(lua_State* L)
+int math_ldexp(lua_State* L)
 {
     lua_pushnumber(L, ldexp(luaL_checknumber(L, 1), luaL_checkinteger(L, 2)));
     return 1;
 }
 
-static int math_min(lua_State* L)
+int math_min(lua_State* L)
 {
     int n = lua_gettop(L); // number of arguments
     double dmin = luaL_checknumber(L, 1);
@@ -211,7 +211,7 @@ static int math_min(lua_State* L)
     return 1;
 }
 
-static int math_max(lua_State* L)
+int math_max(lua_State* L)
 {
     int n = lua_gettop(L); // number of arguments
     double dmax = luaL_checknumber(L, 1);
@@ -226,7 +226,7 @@ static int math_max(lua_State* L)
     return 1;
 }
 
-static int math_random(lua_State* L)
+int math_random(lua_State* L)
 {
     global_State* g = L->global;
     switch (lua_gettop(L))
@@ -270,7 +270,7 @@ static int math_random(lua_State* L)
     return 1;
 }
 
-static int math_randomseed(lua_State* L)
+int math_randomseed(lua_State* L)
 {
     int seed = luaL_checkinteger(L, 1);
 
@@ -325,7 +325,7 @@ inline float perlin_grad(int hash, float x, float y, float z)
     return g[0] * x + g[1] * y + g[2] * z;
 }
 
-static float perlin(float x, float y, float z)
+float perlin(float x, float y, float z)
 {
     float xflr = floorf(x);
     float yflr = floorf(y);
@@ -361,7 +361,7 @@ static float perlin(float x, float y, float z)
     return perlin_lerp(w, perlin_lerp(v, la, lb), perlin_lerp(v, la1, lb1));
 }
 
-static int math_noise(lua_State* L)
+int math_noise(lua_State* L)
 {
     int nx, ny, nz;
     double x = lua_tonumberx(L, 1, &nx);
@@ -378,7 +378,7 @@ static int math_noise(lua_State* L)
     return 1;
 }
 
-static int math_clamp(lua_State* L)
+int math_clamp(lua_State* L)
 {
     double v = luaL_checknumber(L, 1);
     double min = luaL_checknumber(L, 2);
@@ -393,20 +393,20 @@ static int math_clamp(lua_State* L)
     return 1;
 }
 
-static int math_sign(lua_State* L)
+int math_sign(lua_State* L)
 {
     double v = luaL_checknumber(L, 1);
     lua_pushnumber(L, v > 0.0 ? 1.0 : v < 0.0 ? -1.0 : 0.0);
     return 1;
 }
 
-static int math_round(lua_State* L)
+int math_round(lua_State* L)
 {
     lua_pushnumber(L, round(luaL_checknumber(L, 1)));
     return 1;
 }
 
-static int math_map(lua_State* L)
+int math_map(lua_State* L)
 {
     double x = luaL_checknumber(L, 1);
     double inmin = luaL_checknumber(L, 2);
@@ -419,7 +419,7 @@ static int math_map(lua_State* L)
     return 1;
 }
 
-static int math_lerp(lua_State* L)
+int math_lerp(lua_State* L)
 {
     double a = luaL_checknumber(L, 1);
     double b = luaL_checknumber(L, 2);
@@ -430,7 +430,7 @@ static int math_lerp(lua_State* L)
     return 1;
 }
 
-static int math_isnan(lua_State* L)
+int math_isnan(lua_State* L)
 {
     double x = luaL_checknumber(L, 1);
 
@@ -438,7 +438,7 @@ static int math_isnan(lua_State* L)
     return 1;
 }
 
-static int math_isinf(lua_State* L)
+int math_isinf(lua_State* L)
 {
     double x = luaL_checknumber(L, 1);
 
@@ -446,7 +446,7 @@ static int math_isinf(lua_State* L)
     return 1;
 }
 
-static int math_isfinite(lua_State* L)
+int math_isfinite(lua_State* L)
 {
     double x = luaL_checknumber(L, 1);
 

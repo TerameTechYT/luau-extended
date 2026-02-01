@@ -59,7 +59,7 @@ static const char* utf8_decode(const char* o, int* val)
 ** range [i,j], or nil + current position if 's' is not well formed in
 ** that interval
 */
-static int utflen(lua_State* L)
+int utflen(lua_State* L)
 {
     int n = 0;
     size_t len;
@@ -88,7 +88,7 @@ static int utflen(lua_State* L)
 ** codepoint(s, [i, [j]])  -> returns codepoints for all characters
 ** that start in the range [i,j]
 */
-static int codepoint(lua_State* L)
+int codepoint(lua_State* L)
 {
     size_t len;
     const char* s = luaL_checklstring(L, 1, &len);
@@ -159,7 +159,7 @@ static int buffutfchar(lua_State* L, int arg, char* buff, const char** charstr)
 ** implementing the %U escape in lua_pushfstring) and avoids pushing string
 ** objects for each codepoint in the multi-argument case. -Jovanni
 */
-static int utfchar(lua_State* L)
+int utfchar(lua_State* L)
 {
     char buff[UTF8BUFFSZ];
     const char* charstr;
@@ -188,7 +188,7 @@ static int utfchar(lua_State* L)
 ** offset(s, n, [i])  -> index where n-th character counting from
 **   position 'i' starts; 0 means character at 'i'.
 */
-static int byteoffset(lua_State* L)
+int byteoffset(lua_State* L)
 {
     size_t len;
     const char* s = luaL_checklstring(L, 1, &len);
@@ -264,7 +264,7 @@ static int iter_aux(lua_State* L)
     }
 }
 
-static int iter_codes(lua_State* L)
+int iter_codes(lua_State* L)
 {
     luaL_checkstring(L, 1);
     lua_pushcfunction(L, iter_aux, NULL);

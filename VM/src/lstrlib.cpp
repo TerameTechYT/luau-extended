@@ -11,7 +11,7 @@
 // macro to `unsign' a character
 #define uchar(c) ((unsigned char)(c))
 
-static int str_len(lua_State* L)
+int str_len(lua_State* L)
 {
     size_t l;
     luaL_checklstring(L, 1, &l);
@@ -27,7 +27,7 @@ static int posrelat(int pos, size_t len)
     return (pos >= 0) ? pos : 0;
 }
 
-static int str_sub(lua_State* L)
+int str_sub(lua_State* L)
 {
     size_t l;
     const char* s = luaL_checklstring(L, 1, &l);
@@ -44,7 +44,7 @@ static int str_sub(lua_State* L)
     return 1;
 }
 
-static int str_reverse(lua_State* L)
+int str_reverse(lua_State* L)
 {
     size_t l;
     const char* s = luaL_checklstring(L, 1, &l);
@@ -56,7 +56,7 @@ static int str_reverse(lua_State* L)
     return 1;
 }
 
-static int str_lower(lua_State* L)
+int str_lower(lua_State* L)
 {
     size_t l;
     const char* s = luaL_checklstring(L, 1, &l);
@@ -68,7 +68,7 @@ static int str_lower(lua_State* L)
     return 1;
 }
 
-static int str_upper(lua_State* L)
+int str_upper(lua_State* L)
 {
     size_t l;
     const char* s = luaL_checklstring(L, 1, &l);
@@ -80,7 +80,7 @@ static int str_upper(lua_State* L)
     return 1;
 }
 
-static int str_rep(lua_State* L)
+int str_rep(lua_State* L)
 {
     size_t l;
     const char* s = luaL_checklstring(L, 1, &l);
@@ -125,7 +125,7 @@ static int str_rep(lua_State* L)
     return 1;
 }
 
-static int str_byte(lua_State* L)
+int str_byte(lua_State* L)
 {
     size_t l;
     const char* s = luaL_checklstring(L, 1, &l);
@@ -147,7 +147,7 @@ static int str_byte(lua_State* L)
     return n;
 }
 
-static int str_char(lua_State* L)
+int str_char(lua_State* L)
 {
     int n = lua_gettop(L); // number of arguments
 
@@ -717,17 +717,17 @@ static int str_find_aux(lua_State* L, int find)
     return 1;
 }
 
-static int str_find(lua_State* L)
+int str_find(lua_State* L)
 {
     return str_find_aux(L, 1);
 }
 
-static int str_match(lua_State* L)
+int str_match(lua_State* L)
 {
     return str_find_aux(L, 0);
 }
 
-static int gmatch_aux(lua_State* L)
+int gmatch_aux(lua_State* L)
 {
     MatchState ms;
     size_t ls, lp;
@@ -752,7 +752,7 @@ static int gmatch_aux(lua_State* L)
     return 0; // not found
 }
 
-static int gmatch(lua_State* L)
+int gmatch(lua_State* L)
 {
     luaL_checkstring(L, 1);
     luaL_checkstring(L, 2);
@@ -828,7 +828,7 @@ static void add_value(MatchState* ms, luaL_Strbuf* b, const char* s, const char*
     luaL_addvalue(b); // add result to accumulator
 }
 
-static int str_gsub(lua_State* L)
+int str_gsub(lua_State* L)
 {
     size_t srcl, lp;
     const char* src = luaL_checklstring(L, 1, &srcl);
@@ -963,7 +963,7 @@ static void addInt64Format(char form[MAX_FORMAT], char formatIndicator, size_t f
     form[formatItemSize + 3] = 0;
 }
 
-static int str_format(lua_State* L)
+int str_format(lua_State* L)
 {
     int top = lua_gettop(L);
     int arg = 1;
@@ -1068,7 +1068,7 @@ static int str_format(lua_State* L)
     return 1;
 }
 
-static int str_split(lua_State* L)
+int str_split(lua_State* L)
 {
     size_t haystackLen;
     const char* haystack = luaL_checklstring(L, 1, &haystackLen);
@@ -1395,7 +1395,7 @@ static void copywithendian(volatile char* dest, volatile const char* src, int si
     }
 }
 
-static int str_pack(lua_State* L)
+int str_pack(lua_State* L)
 {
     luaL_Strbuf b;
     Header h;
@@ -1493,7 +1493,7 @@ static int str_pack(lua_State* L)
     return 1;
 }
 
-static int str_packsize(lua_State* L)
+int str_packsize(lua_State* L)
 {
     Header h;
     const char* fmt = luaL_checkstring(L, 1); // format string
@@ -1550,7 +1550,7 @@ static long long unpackint(lua_State* L, const char* str, int islittle, int size
     return (long long)res;
 }
 
-static int str_unpack(lua_State* L)
+int str_unpack(lua_State* L)
 {
     Header h;
     const char* fmt = luaL_checkstring(L, 1);
