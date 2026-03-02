@@ -40,13 +40,13 @@ LUAU_FASTFLAG(DebugLuauMagicTypes)
 LUAU_FASTINTVARIABLE(LuauPrimitiveInferenceInTableLimit, 500)
 LUAU_FASTFLAG(LuauExplicitTypeInstantiationSyntax)
 LUAU_FASTFLAG(LuauExplicitTypeInstantiationSupport)
-LUAU_FASTFLAGVARIABLE(LuauNumericUnaryOpsDontProduceNegationRefinements)
 LUAU_FASTFLAG(LuauPushTypeConstraintLambdas3)
-LUAU_FASTFLAGVARIABLE(LuauAvoidMintingMultipleBlockedTypesForGlobals)
 LUAU_FASTFLAGVARIABLE(LuauPropagateTypeAnnotationsInForInLoops)
 LUAU_FASTFLAGVARIABLE(LuauStorePolarityInline)
 LUAU_FASTFLAGVARIABLE(LuauDontIncludeVarargWithAnnotation)
 LUAU_FASTFLAGVARIABLE(LuauUdtfIndirectAliases)
+LUAU_FASTFLAGVARIABLE(LuauDisallowRedefiningBuiltinTypes)
+LUAU_FASTFLAGVARIABLE(LuauUnpackRespectsAnnotations)
 
 namespace Luau
 {
@@ -748,6 +748,12 @@ void ConstraintGenerator::checkAliases(const ScopePtr& scope, AstStatBlock* bloc
     {
         if (auto alias = stat->as<AstStatTypeAlias>())
         {
+            if (FFlag::LuauDisallowRedefiningBuiltinTypes && globalScope->builtinTypeNames.contains(alias->name.value))
+            {
+                reportError(alias->location, DuplicateTypeDefinition{alias->name.value});
+                continue;
+            }
+
             if (scope->exportedTypeBindings.count(alias->name.value) || scope->privateTypeBindings.count(alias->name.value))
             {
                 auto it = aliasDefinitionLocations.find(alias->name.value);
@@ -1146,6 +1152,8 @@ ControlFlow ConstraintGenerator::visit(const ScopePtr& scope, AstStatLocal* stat
     std::vector<TypeId> deferredTypes;
     auto [head, tail] = flatten(rvaluePack);
 
+    DenseHashSet<BlockedType*> freshBlockedTypes{nullptr};
+
     for (size_t i = 0; i < statLocal->vars.size; ++i)
     {
         LUAU_ASSERT(get<BlockedType>(assignees[i]));
@@ -1155,6 +1163,8 @@ ControlFlow ConstraintGenerator::visit(const ScopePtr& scope, AstStatLocal* stat
         if (statLocal->vars.data[i]->annotation)
         {
             localDomain->insert(annotatedTypes[i]);
+            if (FFlag::LuauUnpackRespectsAnnotations && i >= head.size() && tail)
+                deferredTypes.emplace_back(annotatedTypes[i]);
         }
         else
         {
@@ -1166,6 +1176,8 @@ ControlFlow ConstraintGenerator::visit(const ScopePtr& scope, AstStatLocal* stat
             {
                 deferredTypes.push_back(arena->addType(BlockedType{}));
                 localDomain->insert(deferredTypes.back());
+                if (FFlag::LuauUnpackRespectsAnnotations)
+                    freshBlockedTypes.insert(getMutable<BlockedType>(deferredTypes.back()));
             }
             else
             {
@@ -1195,8 +1207,19 @@ ControlFlow ConstraintGenerator::visit(const ScopePtr& scope, AstStatLocal* stat
             }
         );
 
-        for (TypeId t : deferredTypes)
-            getMutable<BlockedType>(t)->setOwner(uc);
+        if (FFlag::LuauUnpackRespectsAnnotations)
+        {
+            // This is a separate set from `deferredTypes` to
+            // distinguish between blocked types we just minted
+            // and blocked types that correspond to annotations.
+            for (BlockedType* bt : freshBlockedTypes)
+                bt->setOwner(uc);
+        }
+        else
+        {
+            for (TypeId t : deferredTypes)
+                getMutable<BlockedType>(t)->setOwner(uc);
+        }
     }
 
     if (statLocal->vars.size == 1 && statLocal->values.size == 1 && firstValueType && scope.get() == rootScope && !hasAnnotation)
@@ -2934,18 +2957,12 @@ Inference ConstraintGenerator::check(const ScopePtr& scope, AstExprUnary* unary)
     case AstExprUnary::Op::Len:
     {
         TypeId resultType = createTypeFunctionInstance(builtinTypes->typeFunctions->lenFunc, {operandType}, {}, scope, unary->location);
-        if (FFlag::LuauNumericUnaryOpsDontProduceNegationRefinements)
-            return Inference{resultType, std::move(refinement)};
-        else
-            return Inference{resultType, refinementArena.negation(refinement)};
+        return Inference{resultType, std::move(refinement)};
     }
     case AstExprUnary::Op::Minus:
     {
         TypeId resultType = createTypeFunctionInstance(builtinTypes->typeFunctions->unmFunc, {operandType}, {}, scope, unary->location);
-        if (FFlag::LuauNumericUnaryOpsDontProduceNegationRefinements)
-            return Inference{resultType, std::move(refinement)};
-        else
-            return Inference{resultType, refinementArena.negation(refinement)};
+        return Inference{resultType, std::move(refinement)};
     }
     default: // msvc can't prove that this is exhaustive.
         LUAU_UNREACHABLE();
@@ -4507,7 +4524,7 @@ struct GlobalPrepopulator : AstVisitor
                 if (!globalScope->lookup(g->name))
                     globalScope->globalsToWarn.insert(g->name.value);
 
-                if (!FFlag::LuauAvoidMintingMultipleBlockedTypesForGlobals || globalScope->bindings.find(g->name) == globalScope->bindings.end())
+                if (globalScope->bindings.find(g->name) == globalScope->bindings.end())
                 {
                     TypeId bt = arena->addType(BlockedType{});
                     globalScope->bindings[g->name] = Binding{bt, g->location};

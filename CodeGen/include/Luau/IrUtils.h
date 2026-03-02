@@ -5,8 +5,6 @@
 #include "Luau/Common.h"
 #include "Luau/IrData.h"
 
-LUAU_FASTFLAG(LuauCodegenUpvalueLoadProp2)
-
 namespace Luau
 {
 namespace CodeGen
@@ -156,7 +154,6 @@ inline bool hasResult(IrCmd cmd)
     case IrCmd::NUM_TO_UINT:
     case IrCmd::FLOAT_TO_NUM:
     case IrCmd::NUM_TO_FLOAT:
-    case IrCmd::NUM_TO_VEC_DEPRECATED:
     case IrCmd::FLOAT_TO_VEC:
     case IrCmd::TAG_VECTOR:
     case IrCmd::TRUNCATE_UINT:
@@ -185,9 +182,8 @@ inline bool hasResult(IrCmd cmd)
     case IrCmd::BUFFER_READI32:
     case IrCmd::BUFFER_READF32:
     case IrCmd::BUFFER_READF64:
-        return true;
     case IrCmd::GET_UPVALUE:
-        return FFlag::LuauCodegenUpvalueLoadProp2;
+        return true;
     default:
         break;
     }
@@ -285,6 +281,7 @@ inline IrCondition getNegatedCondition(IrCondition cond)
 }
 
 IrValueKind getCmdValueKind(IrCmd cmd);
+IrValueKind getConstValueKind(const IrConst& constant);
 
 template<typename F>
 void visitArguments(IrInst& inst, F&& func)

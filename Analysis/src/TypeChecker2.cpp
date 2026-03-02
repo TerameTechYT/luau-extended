@@ -40,9 +40,9 @@ LUAU_FASTFLAG(LuauExplicitTypeInstantiationSupport)
 LUAU_FASTFLAG(LuauBetterTypeMismatchErrors)
 LUAU_FASTFLAG(LuauMorePreciseErrorSuppression)
 LUAU_FASTFLAG(LuauReworkInfiniteTypeFinder)
+LUAU_FASTFLAG(LuauExternTypesNormalizeWithShapes)
 LUAU_FASTFLAGVARIABLE(LuauCheckForInWithSubtyping3)
 LUAU_FASTFLAGVARIABLE(LuauCheckFunctionStatementTypes)
-LUAU_FASTFLAGVARIABLE(LuauFixIndexingUnionWithNonTable)
 
 namespace Luau
 {
@@ -981,14 +981,7 @@ void TypeChecker2::visit(AstStatForIn* forInStatement)
             else
                 reportError(GenericError{"next() does not return enough values"}, forInStatement->values.data[0]->location);
 
-            if (FFlag::LuauCheckForInWithSubtyping3)
-                return;
-        }
-
-        if (!FFlag::LuauCheckForInWithSubtyping3)
-        {
-            for (size_t i = 0; i < std::min(expectedVariableTypes.head.size(), variableTypes.size()); ++i)
-                testIsSubtype(variableTypes[i], expectedVariableTypes.head[i], forInStatement->vars.data[i]->location);
+           return;
         }
 
         // nextFn is going to be invoked with (arrayTy, startIndexTy)
@@ -1020,8 +1013,7 @@ void TypeChecker2::visit(AstStatForIn* forInStatement)
             else
                 reportError(CountMismatch{2, std::nullopt, firstIterationArgCount, CountMismatch::Arg}, forInStatement->values.data[0]->location);
 
-            if (FFlag::LuauCheckForInWithSubtyping3)
-                return;
+             return;
         }
         else if (actualArgCount < minCount)
         {
@@ -1030,51 +1022,33 @@ void TypeChecker2::visit(AstStatForIn* forInStatement)
             else
                 reportError(CountMismatch{2, std::nullopt, firstIterationArgCount, CountMismatch::Arg}, forInStatement->values.data[0]->location);
 
-            if (FFlag::LuauCheckForInWithSubtyping3)
-                return;
+             return;
         }
 
-        if (FFlag::LuauCheckForInWithSubtyping3)
-        {
-            const TypeId iterFunc = follow(iterTys[0]);
+        const TypeId iterFunc = follow(iterTys[0]);
 
-            std::vector<TypeId> prospectiveArgTypes = std::vector(iterTys.begin() + 1, iterTys.end());
-            // Right pad with nils if needed
-            if (const TypePack* iterFuncArgs = get<TypePack>(follow(iterFtv->argTypes));
-                iterFuncArgs && iterFuncArgs->head.size() > prospectiveArgTypes.size())
-                prospectiveArgTypes.resize(iterFuncArgs->head.size(), builtinTypes->nilType);
-            const TypePackId prospectiveArgs = arena.addTypePack(prospectiveArgTypes, std::nullopt);
+        std::vector<TypeId> prospectiveArgTypes = std::vector(iterTys.begin() + 1, iterTys.end());
+        // Right pad with nils if needed
+        if (const TypePack* iterFuncArgs = get<TypePack>(follow(iterFtv->argTypes));
+            iterFuncArgs && iterFuncArgs->head.size() > prospectiveArgTypes.size())
+            prospectiveArgTypes.resize(iterFuncArgs->head.size(), builtinTypes->nilType);
+        const TypePackId prospectiveArgs = arena.addTypePack(prospectiveArgTypes, std::nullopt);
 
-            std::vector<TypeId> prospectiveRetTypes = {};
-            if (variableTypes.size() > 0) // Type inference intersects the control variable with ~nil, so we make it optional here
-                prospectiveRetTypes.emplace_back(arena.addType(UnionType{{variableTypes[0], builtinTypes->nilType}}));
-            if (variableTypes.size() > 1)
-                prospectiveRetTypes.emplace_back(variableTypes[1]);
-            // Right pad with anys, since not all the return values are used (eg for key in pairs(t))
-            if (const TypePack* iterFuncRets = get<TypePack>(follow(iterFtv->retTypes));
-                iterFuncRets && iterFuncRets->head.size() > prospectiveRetTypes.size())
-                prospectiveRetTypes.resize(iterFuncRets->head.size(), builtinTypes->anyType);
-            // Add a variadic any tail because sometimes iterFunc returns a variadic pack (see forin_metatable_iter_mm)
-            const TypePackId prospectiveRets = arena.addTypePack(prospectiveRetTypes, builtinTypes->anyTypePack);
+        std::vector<TypeId> prospectiveRetTypes = {};
+        if (variableTypes.size() > 0) // Type inference intersects the control variable with ~nil, so we make it optional here
+            prospectiveRetTypes.emplace_back(arena.addType(UnionType{{variableTypes[0], builtinTypes->nilType}}));
+        if (variableTypes.size() > 1)
+            prospectiveRetTypes.emplace_back(variableTypes[1]);
+        // Right pad with anys, since not all the return values are used (eg for key in pairs(t))
+        if (const TypePack* iterFuncRets = get<TypePack>(follow(iterFtv->retTypes));
+            iterFuncRets && iterFuncRets->head.size() > prospectiveRetTypes.size())
+            prospectiveRetTypes.resize(iterFuncRets->head.size(), builtinTypes->anyType);
+        // Add a variadic any tail because sometimes iterFunc returns a variadic pack (see forin_metatable_iter_mm)
+        const TypePackId prospectiveRets = arena.addTypePack(prospectiveRetTypes, builtinTypes->anyTypePack);
 
-            const TypeId prospectiveFunction = arena.addType(FunctionType{prospectiveArgs, prospectiveRets, std::nullopt, isMm});
+        const TypeId prospectiveFunction = arena.addType(FunctionType{prospectiveArgs, prospectiveRets, std::nullopt, isMm});
 
-            testIsSubtypeForInStat(iterFunc, prospectiveFunction, *forInStatement);
-        }
-        else
-        {
-            if (iterTys.size() >= 2 && flattenedArgTypes.head.size() > 0)
-            {
-                size_t valueIndex = forInStatement->values.size > 1 ? 1 : 0;
-                testIsSubtype(iterTys[1], flattenedArgTypes.head[0], forInStatement->values.data[valueIndex]->location);
-            }
-
-            if (iterTys.size() == 3 && flattenedArgTypes.head.size() > 1)
-            {
-                size_t valueIndex = forInStatement->values.size > 2 ? 2 : 0;
-                testIsSubtype(iterTys[2], flattenedArgTypes.head[1], forInStatement->values.data[valueIndex]->location);
-            }
-        }
+        testIsSubtypeForInStat(iterFunc, prospectiveFunction, *forInStatement);
     };
 
     std::shared_ptr<const NormalizedType> iteratorNorm = normalizer.normalize(iteratorTy);
@@ -2011,10 +1985,7 @@ void TypeChecker2::visit(AstExprIndexExpr* indexExpr, ValueContext context)
                 reportError(NormalizationTooComplex{}, indexExpr->location);
                 [[fallthrough]];
             case ErrorSuppression::DoNotSuppress:
-                if (FFlag::LuauFixIndexingUnionWithNonTable)
-                    reportError(NotATable{exprType}, indexExpr->location);
-                else
-                    reportError(OptionalValueAccess{exprType}, indexExpr->location);
+                reportError(NotATable{exprType}, indexExpr->location);
             }
         }
     }
@@ -3383,7 +3354,6 @@ bool TypeChecker2::testIsSubtype(TypePackId subTy, TypePackId superTy, Location 
 
 void TypeChecker2::maybeReportSubtypingError(const TypeId subTy, const TypeId superTy, const Location& location)
 {
-    LUAU_ASSERT(FFlag::LuauCheckForInWithSubtyping3);
     switch (shouldSuppressErrors(NotNull{&normalizer}, subTy).orElse(shouldSuppressErrors(NotNull{&normalizer}, superTy)))
     {
     case ErrorSuppression::Suppress:
@@ -3402,7 +3372,6 @@ void TypeChecker2::maybeReportSubtypingError(const TypeId subTy, const TypeId su
 
 void TypeChecker2::testIsSubtypeForInStat(const TypeId iterFunc, const TypeId prospectiveFunc, const AstStatForIn& forInStat)
 {
-    LUAU_ASSERT(FFlag::LuauCheckForInWithSubtyping3);
     LUAU_ASSERT(get<FunctionType>(follow(iterFunc)));
     LUAU_ASSERT(get<FunctionType>(follow(prospectiveFunc)));
 
@@ -3502,7 +3471,69 @@ PropertyTypes TypeChecker2::lookupProp(
     if (normValid)
         fetch(norm->booleans);
 
-    if (normValid)
+    // TODO: the subsequent code here is basically proof that this broader approach to doing indexing isn't quite right.
+    // we _should_ be leveraging one unified implementation of indexing here, shared with e.g. the `index` type function.
+    if (normValid && FFlag::LuauExternTypesNormalizeWithShapes)
+    {
+        // each individual extern type consists of a collection of extern types in a normal form, and a collection of table types describing the
+        // shapes further. extern types and tables are both open to extension in general, and therefore, we need to consider the possibility that a
+        // subset of these types might not be contributing to the type of the index, but that the index should nevertheless be valid still. towards
+        // that end, we want to look through all of the components to see if any of them have the index before making a judgment if the extern types
+        // portion as a whole has the index.
+
+        std::vector<TypeId> localTypesOfProp;
+
+        for (const auto& [ty, _negations] : norm->externTypes.externTypes)
+        {
+            NormalizationResult result = normalizer.isInhabited(ty);
+            if (result == NormalizationResult::HitLimits)
+                normValid = false;
+            if (result != NormalizationResult::True)
+                continue;
+
+            DenseHashSet<TypeId> seen{nullptr};
+            PropertyType res = hasIndexTypeFromType(ty, prop, context, location, seen, astIndexExprType, errors);
+
+            if (res.present == NormalizationResult::HitLimits)
+            {
+                normValid = false;
+                continue;
+            }
+
+            if (res.present == NormalizationResult::True && res.result)
+                localTypesOfProp.emplace_back(*res.result);
+        }
+
+        for (TypeId ty : norm->externTypes.shapeExtensions)
+        {
+            NormalizationResult result = normalizer.isInhabited(ty);
+            if (result == NormalizationResult::HitLimits)
+                normValid = false;
+            if (result != NormalizationResult::True)
+                continue;
+
+            DenseHashSet<TypeId> seen{nullptr};
+            PropertyType res = hasIndexTypeFromType(ty, prop, context, location, seen, astIndexExprType, errors);
+
+            if (res.present == NormalizationResult::HitLimits)
+            {
+                normValid = false;
+                continue;
+            }
+
+            if (res.present == NormalizationResult::True && res.result)
+                localTypesOfProp.emplace_back(*res.result);
+        }
+
+        if (!localTypesOfProp.empty())
+            typesOfProp.insert(typesOfProp.end(), localTypesOfProp.begin(), localTypesOfProp.end());
+        else
+        {
+            typesMissingTheProp.insert(typesMissingTheProp.end(), norm->externTypes.ordering.begin(), norm->externTypes.ordering.end());
+            typesMissingTheProp.insert(typesMissingTheProp.end(), norm->externTypes.shapeExtensions.begin(), norm->externTypes.shapeExtensions.end());
+        }
+    }
+    else if (normValid)
     {
         for (const auto& [ty, _negations] : norm->externTypes.externTypes)
         {
@@ -3654,7 +3685,7 @@ PropertyType TypeChecker2::hasIndexTypeFromType(
 
     if (auto tt = getTableType(ty))
     {
-        if (auto resTy = findTablePropertyRespectingMeta(builtinTypes, errors, ty, prop, context, location))
+        if (auto resTy = findTablePropertyRespectingMeta(builtinTypes, errors, ty, prop, context, location, /* useNewSolver */ true))
             return {NormalizationResult::True, resTy};
 
         if (tt->indexer)

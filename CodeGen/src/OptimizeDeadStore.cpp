@@ -10,9 +10,11 @@
 #include "lobject.h"
 
 LUAU_FASTFLAGVARIABLE(LuauCodegenGcoDse2)
-LUAU_FASTFLAG(LuauCodegenNumIntFolds2)
 LUAU_FASTFLAG(LuauCodegenBufferRangeMerge3)
 LUAU_FASTFLAGVARIABLE(LuauCodegenDsoPairTrackFix)
+LUAU_FASTFLAGVARIABLE(LuauCodegenDsoTagOverlayFix)
+LUAU_FASTFLAG(LuauCodegenOpReadOnly)
+LUAU_FASTFLAG(LuauCodegenSafeEnvPreserve)
 
 // TODO: optimization can be improved by knowing which registers are live in at each VM exit
 
@@ -424,7 +426,7 @@ static bool tryReplaceTagWithFullStore(
 
             if (prevValueInst.cmd == IrCmd::STORE_VECTOR)
             {
-                CODEGEN_ASSERT(OP_E(prevValueInst).kind == IrOpKind::None);
+                CODEGEN_ASSERT(!HAS_OP_E(prevValueInst));
                 IrOp prevValueX = OP_B(prevValueInst);
                 IrOp prevValueY = OP_C(prevValueInst);
                 IrOp prevValueZ = OP_D(prevValueInst);
@@ -454,7 +456,7 @@ static bool tryReplaceTagWithFullStore(
 
         if (prev.cmd == IrCmd::STORE_SPLIT_TVALUE)
         {
-            CODEGEN_ASSERT(OP_D(prev).kind == IrOpKind::None);
+            CODEGEN_ASSERT(!HAS_OP_D(prev));
 
             // If the 'nil' is stored, we keep 'STORE_TAG Rn, tnil' as it writes the 'full' TValue
             if (tag != LUA_TNIL)
@@ -463,6 +465,7 @@ static bool tryReplaceTagWithFullStore(
                 replace(function, block, instIndex, IrInst{IrCmd::STORE_SPLIT_TVALUE, {targetOp, tagOp, prevValueOp}});
             }
 
+            CODEGEN_ASSERT(regInfo.tagInstIdx == kInvalidInstIdx && regInfo.valueInstIdx == kInvalidInstIdx);
             state.killTValueStore(regInfo);
 
             regInfo.tvalueInstIdx = instIndex;
@@ -482,6 +485,7 @@ static bool tryReplaceTagWithFullStore(
                 replace(function, block, instIndex, IrInst{IrCmd::STORE_VECTOR, {targetOp, prevValueX, prevValueY, prevValueZ, tagOp}});
             }
 
+            CODEGEN_ASSERT(regInfo.tagInstIdx == kInvalidInstIdx && regInfo.valueInstIdx == kInvalidInstIdx);
             state.killTValueStore(regInfo);
 
             regInfo.tvalueInstIdx = instIndex;
@@ -533,9 +537,10 @@ static bool tryReplaceValueWithFullStore(
             uint8_t prevTag = function.tagOp(prevTagOp);
 
             CODEGEN_ASSERT(regInfo.knownTag == prevTag);
-            CODEGEN_ASSERT(OP_D(prev).kind == IrOpKind::None);
+            CODEGEN_ASSERT(!HAS_OP_D(prev));
             replace(function, block, instIndex, IrInst{IrCmd::STORE_SPLIT_TVALUE, {targetOp, prevTagOp, valueOp}});
 
+            CODEGEN_ASSERT(regInfo.tagInstIdx == kInvalidInstIdx && regInfo.valueInstIdx == kInvalidInstIdx);
             state.killTValueStore(regInfo);
 
             regInfo.tvalueInstIdx = instIndex;
@@ -550,16 +555,19 @@ static bool tryReplaceValueWithFullStore(
             CODEGEN_ASSERT(regInfo.knownTag == prevTag);
             replace(function, block, instIndex, IrInst{IrCmd::STORE_SPLIT_TVALUE, {targetOp, prevTagOp, valueOp}});
 
+            CODEGEN_ASSERT(regInfo.tagInstIdx == kInvalidInstIdx && regInfo.valueInstIdx == kInvalidInstIdx);
             state.killTValueStore(regInfo);
 
             regInfo.tvalueInstIdx = instIndex;
             return true;
         }
-        else if (FFlag::LuauCodegenDsoPairTrackFix && prev.cmd == IrCmd::STORE_TVALUE && regInfo.knownTag != kUnknownTag)
+        else if (FFlag::LuauCodegenDsoPairTrackFix && prev.cmd == IrCmd::STORE_TVALUE && regInfo.knownTag != kUnknownTag &&
+                 (!FFlag::LuauCodegenDsoTagOverlayFix || regInfo.tagInstIdx == kInvalidInstIdx))
         {
             IrOp prevTagOp = build.constTag(regInfo.knownTag);
             replace(function, block, instIndex, IrInst{IrCmd::STORE_SPLIT_TVALUE, {targetOp, prevTagOp, valueOp}});
 
+            CODEGEN_ASSERT(regInfo.tagInstIdx == kInvalidInstIdx && regInfo.valueInstIdx == kInvalidInstIdx);
             state.killTValueStore(regInfo);
 
             regInfo.tvalueInstIdx = instIndex;
@@ -589,6 +597,10 @@ static bool tryReplaceVectorValueWithFullStore(
 
         IrInst& storeInst = function.instructions[instIndex];
         CODEGEN_ASSERT(storeInst.cmd == IrCmd::STORE_VECTOR);
+
+        if (FFlag::LuauCodegenOpReadOnly && !HAS_OP_E(storeInst))
+            storeInst.ops.push_back({});
+
         replace(function, OP_E(storeInst), prevTagOp);
 
         state.killTagStore(regInfo);
@@ -609,12 +621,17 @@ static bool tryReplaceVectorValueWithFullStore(
             uint8_t prevTag = function.tagOp(prevTagOp);
 
             CODEGEN_ASSERT(regInfo.knownTag == prevTag);
-            CODEGEN_ASSERT(OP_D(prev).kind == IrOpKind::None);
+            CODEGEN_ASSERT(!HAS_OP_D(prev));
 
             IrInst& storeInst = function.instructions[instIndex];
             CODEGEN_ASSERT(storeInst.cmd == IrCmd::STORE_VECTOR);
+
+            if (FFlag::LuauCodegenOpReadOnly && !HAS_OP_E(storeInst))
+                storeInst.ops.push_back({});
+
             replace(function, OP_E(storeInst), prevTagOp);
 
+            CODEGEN_ASSERT(regInfo.tagInstIdx == kInvalidInstIdx && regInfo.valueInstIdx == kInvalidInstIdx);
             state.killTValueStore(regInfo);
 
             regInfo.tvalueInstIdx = instIndex;
@@ -630,8 +647,13 @@ static bool tryReplaceVectorValueWithFullStore(
 
             IrInst& storeInst = function.instructions[instIndex];
             CODEGEN_ASSERT(storeInst.cmd == IrCmd::STORE_VECTOR);
+
+            if (FFlag::LuauCodegenOpReadOnly && !HAS_OP_E(storeInst))
+                storeInst.ops.push_back({});
+
             replace(function, OP_E(storeInst), prevTagOp);
 
+            CODEGEN_ASSERT(regInfo.tagInstIdx == kInvalidInstIdx && regInfo.valueInstIdx == kInvalidInstIdx);
             state.killTValueStore(regInfo);
 
             regInfo.tvalueInstIdx = instIndex;
@@ -820,7 +842,7 @@ static void markDeadStoresInInst(RemoveDeadStoreState& state, IrBuilder& build, 
                     if (arg->cmd == IrCmd::TAG_VECTOR)
                         regInfo.maybeGco = false;
 
-                    if (arg->cmd == IrCmd::LOAD_TVALUE && OP_C(arg).kind != IrOpKind::None)
+                    if (arg->cmd == IrCmd::LOAD_TVALUE && (FFlag::LuauCodegenOpReadOnly ? HAS_OP_C(*arg) : OP_C(arg).kind != IrOpKind::None))
                         regInfo.maybeGco = isGCO(function.tagOp(OP_C(arg)));
                 }
             }
@@ -902,7 +924,7 @@ static void markDeadStoresInInst(RemoveDeadStoreState& state, IrBuilder& build, 
         state.checkLiveIns(OP_B(inst));
         break;
     case IrCmd::CHECK_BUFFER_LEN:
-        if (FFlag::LuauCodegenBufferRangeMerge3 && FFlag::LuauCodegenNumIntFolds2)
+        if (FFlag::LuauCodegenBufferRangeMerge3)
             state.checkLiveIns(OP_F(inst));
         else
             state.checkLiveIns(OP_D(inst));
@@ -971,6 +993,13 @@ static void markDeadStoresInInst(RemoveDeadStoreState& state, IrBuilder& build, 
 static void markDeadStoresInBlock(IrBuilder& build, IrBlock& block, RemoveDeadStoreState& state)
 {
     IrFunction& function = build.function;
+
+    if (FFlag::LuauCodegenSafeEnvPreserve)
+    {
+        // Block might establish a safe environment right at the start and might take a VM exit
+        if ((block.flags & kBlockFlagSafeEnvCheck) != 0)
+            state.readAllRegs();
+    }
 
     for (uint32_t index = block.start; index <= block.finish; index++)
     {

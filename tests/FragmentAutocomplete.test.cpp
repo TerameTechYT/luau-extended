@@ -14,11 +14,7 @@
 #include "Luau/Type.h"
 #include "ScopedFlags.h"
 
-#include <algorithm>
-#include <chrono>
 #include <ctime>
-#include <iomanip>
-#include <iostream>
 #include <memory>
 #include <optional>
 
@@ -28,8 +24,7 @@ LUAU_FASTINT(LuauParseErrorLimit)
 
 LUAU_FASTFLAG(LuauBetterReverseDependencyTracking)
 LUAU_FASTFLAG(LuauFragmentRequiresCanBeResolvedToAModule)
-LUAU_FASTFLAG(LuauNumericUnaryOpsDontProduceNegationRefinements)
-LUAU_FASTFLAG(LuauAutocompleteSingletonsInIndexer)
+LUAU_FASTFLAG(LuauAutocompleteFunctionCallArgTails2)
 
 static std::optional<AutocompleteEntryMap> nullCallback(std::string tag, std::optional<const ExternType*> ptr, std::optional<std::string> contents)
 {
@@ -4409,7 +4404,6 @@ TEST_CASE_FIXTURE(FragmentAutocompleteBuiltinsFixture, "hot_comment_should_rec")
 
 TEST_CASE_FIXTURE(FragmentAutocompleteBuiltinsFixture, "len_operator_needs_to_provide_autocomplete_results")
 {
-    ScopedFastFlag sff{FFlag::LuauNumericUnaryOpsDontProduceNegationRefinements, true};
     std::string source = R"(
 type Pool = { numbers: { number }}
 
@@ -4440,7 +4434,6 @@ end
 
 TEST_CASE_FIXTURE(FragmentAutocompleteBuiltinsFixture, "unary_minus_operator_needs_to_provide_autocomplete_results")
 {
-    ScopedFastFlag sff{FFlag::LuauNumericUnaryOpsDontProduceNegationRefinements, true};
     std::string source = R"(
 type Pool = { x : number }
 
@@ -4714,8 +4707,6 @@ foo(@1)
 
 TEST_CASE_FIXTURE(FragmentAutocompleteFixture, "fragment_autocomplete_using_indexer_with_singleton_keys")
 {
-    ScopedFastFlag _{FFlag::LuauAutocompleteSingletonsInIndexer, true};
-
     std::string source = R"(
         type List = "Val1" | "Val2" | "Val3"
         local Table: { [List]: boolean }
@@ -4737,6 +4728,32 @@ TEST_CASE_FIXTURE(FragmentAutocompleteFixture, "fragment_autocomplete_using_inde
             CHECK(frag.result->acResults.entryMap.count("Val1") > 0);
             CHECK(frag.result->acResults.entryMap.count("Val2") > 0);
             CHECK(frag.result->acResults.entryMap.count("Val3") > 0);
+        }
+    );
+}
+
+TEST_CASE_FIXTURE(FragmentAutocompleteFixture, "fragment_autocomplete_using_function_call_with_variadic_args")
+{
+    ScopedFastFlag sff{FFlag::LuauAutocompleteFunctionCallArgTails2, true};
+
+    std::string source = R"(
+        local function foo(...: "Val1" | "Val2") end
+    )";
+
+    std::string dest = R"(
+        local function foo(...: "Val1" | "Val2") end
+        foo(@1
+    )";
+
+    autocompleteFragmentInBothSolvers(
+        source,
+        dest,
+        '1',
+        [](FragmentAutocompleteStatusResult& frag)
+        {
+            REQUIRE(frag.result);
+            CHECK(frag.result->acResults.entryMap.count("\"Val1\"") == 1);
+            CHECK(frag.result->acResults.entryMap.count("\"Val2\"") == 1);
         }
     );
 }

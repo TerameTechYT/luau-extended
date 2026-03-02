@@ -10,11 +10,11 @@
 
 LUAU_FASTFLAG(LuauSolverV2)
 LUAU_FASTFLAG(LuauFunctionCallsAreNotNilable)
-LUAU_FASTFLAG(LuauNumericUnaryOpsDontProduceNegationRefinements)
 LUAU_FASTFLAG(DebugLuauAssertOnForcedConstraint)
 LUAU_FASTFLAG(LuauBetterTypeMismatchErrors)
 LUAU_FASTFLAG(LuauTypeCheckerUdtfRenameClassToExtern)
 LUAU_FASTFLAG(LuauUnionOfTablesPreservesReadWrite)
+LUAU_FASTFLAG(LuauExternTypesNormalizeWithShapes)
 
 using namespace Luau;
 
@@ -1685,7 +1685,10 @@ TEST_CASE_FIXTURE(RefinementExternTypeFixture, "asserting_optional_properties_sh
 
     LUAU_REQUIRE_NO_ERRORS(result);
 
-    CHECK_EQ("WeldConstraint", toString(requireTypeAtPosition({3, 15})));
+    if (FFlag::LuauSolverV2 && FFlag::LuauExternTypesNormalizeWithShapes)
+        CHECK_EQ("WeldConstraint & { read Part1: ~(false?) }", toString(requireTypeAtPosition({3, 15})));
+    else
+        CHECK_EQ("WeldConstraint", toString(requireTypeAtPosition({3, 15})));
     CHECK_EQ("Vector3", toString(requireTypeAtPosition({6, 29})));
 }
 
@@ -2915,7 +2918,11 @@ TEST_CASE_FIXTURE(BuiltinsFixture, "refinements_from_and_should_not_refine_to_ne
     )");
 
     LUAU_REQUIRE_NO_ERRORS(results);
-    CHECK_EQ("Config", toString(requireTypeAtPosition({6, 24})));
+
+    if (FFlag::LuauExternTypesNormalizeWithShapes)
+        CHECK_EQ("(Config & { read KeyboardEnabled: false? }) | (Config & { read MouseEnabled: false? })", toString(requireTypeAtPosition({6, 24})));
+    else
+        CHECK_EQ("Config", toString(requireTypeAtPosition({6, 24})));
 }
 
 TEST_CASE_FIXTURE(Fixture, "force_simplify_constraint_doesnt_drop_blocked_type")
@@ -2944,7 +2951,6 @@ TEST_CASE_FIXTURE(Fixture, "len_operator_in_if_is_just_a_proposition")
 {
     ScopedFastFlag _[] = {
         {FFlag::LuauSolverV2, true},
-        {FFlag::LuauNumericUnaryOpsDontProduceNegationRefinements, true},
     };
 
     CheckResult result = check(R"(
@@ -2962,7 +2968,6 @@ TEST_CASE_FIXTURE(Fixture, "unm_operator_is_just_a_proposition")
 {
     ScopedFastFlag _[] = {
         {FFlag::LuauSolverV2, true},
-        {FFlag::LuauNumericUnaryOpsDontProduceNegationRefinements, true},
     };
 
     CheckResult result = check(R"(
