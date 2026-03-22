@@ -113,36 +113,217 @@ LUALIB_API void luaL_pushresultsize(luaL_Strbuf* B, size_t size);
 
 // builtin libraries
 LUALIB_API int luaopen_base(lua_State* L);
+LUALIB_API int luaB_print(lua_State* L);
+LUALIB_API int luaB_tonumber(lua_State* L);
+LUALIB_API int luaB_error(lua_State* L);
+LUALIB_API int luaB_getmetatable(lua_State* L);
+LUALIB_API int luaB_setmetatable(lua_State* L);
+LUALIB_API int luaB_getfenv(lua_State* L);
+LUALIB_API int luaB_setfenv(lua_State* L);
+LUALIB_API int luaB_rawequal(lua_State* L);
+LUALIB_API int luaB_rawget(lua_State* L);
+LUALIB_API int luaB_rawset(lua_State* L);
+LUALIB_API int luaB_rawlen(lua_State* L);
+LUALIB_API int luaB_gcinfo(lua_State* L);
+LUALIB_API int luaB_type(lua_State* L);
+LUALIB_API int luaB_typeof(lua_State* L);
+LUALIB_API int luaB_next(lua_State* L);
+LUALIB_API int luaB_pairs(lua_State* L);
+LUALIB_API int luaB_inext(lua_State* L);
+LUALIB_API int luaB_ipairs(lua_State* L);
+LUALIB_API int luaB_assert(lua_State* L);
+LUALIB_API int luaB_select(lua_State* L);
+LUALIB_API void luaB_pcallrun(lua_State* L, void* ud);
+LUALIB_API int luaB_pcally(lua_State* L);
+LUALIB_API int luaB_pcallcont(lua_State* L, int status);
+LUALIB_API int luaB_xpcally(lua_State* L);
+LUALIB_API void luaB_xpcallerr(lua_State* L, void* ud);
+LUALIB_API int luaB_xpcallcont(lua_State* L, int status);
+LUALIB_API int luaB_tostring(lua_State* L);
+LUALIB_API int luaB_newproxy(lua_State* L);
 
 #define LUA_COLIBNAME "coroutine"
 LUALIB_API int luaopen_coroutine(lua_State* L);
+LUALIB_API int costatus(lua_State* L);
+LUALIB_API int auxresume(lua_State* L, lua_State* co, int narg);
+LUALIB_API int auxresumecont(lua_State* L, lua_State* co);
+LUALIB_API int coresumefinish(lua_State* L, int r);
+LUALIB_API int coresumey(lua_State* L);
+LUALIB_API int coresumecont(lua_State* L, int status);
+LUALIB_API int auxwrapfinish(lua_State* L, int r);
+LUALIB_API int auxwrapy(lua_State* L);
+LUALIB_API int auxwrapcont(lua_State* L, int status);
+LUALIB_API int cocreate(lua_State* L);
+LUALIB_API int cowrap(lua_State* L);
+LUALIB_API int coyield(lua_State* L);
+LUALIB_API int corunning(lua_State* L);
+LUALIB_API int coyieldable(lua_State* L);
+LUALIB_API int coclose(lua_State* L);
 
 #define LUA_TABLIBNAME "table"
 LUALIB_API int luaopen_table(lua_State* L);
+LUALIB_API int foreachi(lua_State* L);
+LUALIB_API int foreach(lua_State* L);
+LUALIB_API int maxn(lua_State* L);
+LUALIB_API int getn(lua_State* L);
+LUALIB_API int tinsert(lua_State* L);
+LUALIB_API int tremove(lua_State* L);
+LUALIB_API int tmove(lua_State* L);
+LUALIB_API int tconcat(lua_State* L);
+LUALIB_API int tpack(lua_State* L);
+LUALIB_API int tunpack(lua_State* L);
+LUALIB_API int tsort(lua_State* L);
+LUALIB_API int tcreate(lua_State* L);
+LUALIB_API int tfind(lua_State* L);
+LUALIB_API int tclear(lua_State* L);
+LUALIB_API int tfreeze(lua_State* L);
+LUALIB_API int tisfrozen(lua_State* L);
+LUALIB_API int tclone(lua_State* L);
 
 #define LUA_OSLIBNAME "os"
 LUALIB_API int luaopen_os(lua_State* L);
+LUALIB_API time_t os_timegm(struct tm* timep);
+LUALIB_API int os_clock(lua_State* L);
+LUALIB_API int os_date(lua_State* L);
+LUALIB_API int os_time(lua_State* L);
+LUALIB_API int os_difftime(lua_State* L);
 
 #define LUA_STRLIBNAME "string"
 LUALIB_API int luaopen_string(lua_State* L);
+LUALIB_API int str_len(lua_State* L);
+LUALIB_API int str_sub(lua_State* L);
+LUALIB_API int str_reverse(lua_State* L);
+LUALIB_API int str_lower(lua_State* L);
+LUALIB_API int str_upper(lua_State* L);
+LUALIB_API int str_rep(lua_State* L);
+LUALIB_API int str_byte(lua_State* L);
+LUALIB_API int str_char(lua_State* L);
+LUALIB_API int str_find_aux(lua_State* L, int find);
+LUALIB_API int str_find(lua_State* L);
+LUALIB_API int str_match(lua_State* L);
+LUALIB_API int gmatch_aux(lua_State* L);
+LUALIB_API int gmatch(lua_State* L);
+LUALIB_API int str_gsub(lua_State* L);
+LUALIB_API int str_format(lua_State* L);
+LUALIB_API int str_split(lua_State* L);
+LUALIB_API int str_pack(lua_State* L);
+LUALIB_API int str_packsize(lua_State* L);
+LUALIB_API int str_unpack(lua_State* L);
 
+typedef unsigned b_uint;
 #define LUA_BITLIBNAME "bit32"
 LUALIB_API int luaopen_bit32(lua_State* L);
+LUALIB_API b_uint andaux(lua_State* L);
+LUALIB_API int b_and(lua_State* L);
+LUALIB_API int b_test(lua_State* L);
+LUALIB_API int b_or(lua_State* L);
+LUALIB_API int b_xor(lua_State* L);
+LUALIB_API int b_not(lua_State* L);
+LUALIB_API int b_shift(lua_State* L, b_uint r, int i);
+LUALIB_API int b_lshift(lua_State* L);
+LUALIB_API int b_rshift(lua_State* L);
+LUALIB_API int b_arshift(lua_State* L);
+LUALIB_API int b_rot(lua_State* L, int i);
+LUALIB_API int b_lrot(lua_State* L);
+LUALIB_API int b_rrot(lua_State* L);
+LUALIB_API int b_extract(lua_State* L);
+LUALIB_API int b_replace(lua_State* L);
+LUALIB_API int b_countlz(lua_State* L);
+LUALIB_API int b_countrz(lua_State* L);
+LUALIB_API int b_swap(lua_State* L);
 
 #define LUA_BUFFERLIBNAME "buffer"
 LUALIB_API int luaopen_buffer(lua_State* L);
+LUALIB_API int buffer_fromstring(lua_State* L);
+LUALIB_API int buffer_create(lua_State* L);
+LUALIB_API int buffer_tostring(lua_State* L);
+template<typename T>
+LUALIB_API int buffer_readinteger(lua_State* L);
+template<typename T>
+LUALIB_API int buffer_writeinteger(lua_State* L);
+template<typename T, typename StorageType>
+LUALIB_API int buffer_readfp(lua_State* L);
+template<typename T, typename StorageType>
+LUALIB_API int buffer_writefp(lua_State* L);
+LUALIB_API int buffer_readstring(lua_State* L);
+LUALIB_API int buffer_writestring(lua_State* L);
+LUALIB_API int buffer_len(lua_State* L);
+LUALIB_API int buffer_copy(lua_State* L);
+LUALIB_API int buffer_fill(lua_State* L);
+LUALIB_API int buffer_readbits(lua_State* L);
+LUALIB_API int buffer_writebits(lua_State* L);
 
 #define LUA_UTF8LIBNAME "utf8"
 LUALIB_API int luaopen_utf8(lua_State* L);
+LUALIB_API int utflen(lua_State* L);
+LUALIB_API int codepoint(lua_State* L);
+LUALIB_API int utfchar(lua_State* L);
+LUALIB_API int byteoffset(lua_State* L);
+LUALIB_API int iter_aux(lua_State* L);
+LUALIB_API int iter_codes(lua_State* L);
 
 #define LUA_MATHLIBNAME "math"
 LUALIB_API int luaopen_math(lua_State* L);
+LUALIB_API int math_abs(lua_State* L);
+LUALIB_API int math_sin(lua_State* L);
+LUALIB_API int math_sinh(lua_State* L);
+LUALIB_API int math_cos(lua_State* L);
+LUALIB_API int math_cosh(lua_State* L);
+LUALIB_API int math_tan(lua_State* L);
+LUALIB_API int math_tanh(lua_State* L);
+LUALIB_API int math_asin(lua_State* L);
+LUALIB_API int math_acos(lua_State* L);
+LUALIB_API int math_atan(lua_State* L);
+LUALIB_API int math_atan2(lua_State* L);
+LUALIB_API int math_ceil(lua_State* L);
+LUALIB_API int math_floor(lua_State* L);
+LUALIB_API int math_fmod(lua_State* L);
+LUALIB_API int math_modf(lua_State* L);
+LUALIB_API int math_sqrt(lua_State* L);
+LUALIB_API int math_pow(lua_State* L);
+LUALIB_API int math_log(lua_State* L);
+LUALIB_API int math_log10(lua_State* L);
+LUALIB_API int math_exp(lua_State* L);
+LUALIB_API int math_deg(lua_State* L);
+LUALIB_API int math_rad(lua_State* L);
+LUALIB_API int math_frexp(lua_State* L);
+LUALIB_API int math_ldexp(lua_State* L);
+LUALIB_API int math_min(lua_State* L);
+LUALIB_API int math_max(lua_State* L);
+LUALIB_API int math_random(lua_State* L);
+LUALIB_API int math_randomseed(lua_State* L);
+LUALIB_API int math_noise(lua_State* L);
+LUALIB_API int math_clamp(lua_State* L);
+LUALIB_API int math_sign(lua_State* L);
+LUALIB_API int math_round(lua_State* L);
+LUALIB_API int math_map(lua_State* L);
+LUALIB_API int math_lerp(lua_State* L);
+LUALIB_API int math_isnan(lua_State* L);
+LUALIB_API int math_isinf(lua_State* L);
+LUALIB_API int math_isfinite(lua_State* L);
 
 #define LUA_DBLIBNAME "debug"
 LUALIB_API int luaopen_debug(lua_State* L);
+LUALIB_API int db_info(lua_State* L);
+LUALIB_API int db_traceback(lua_State* L);
 
 #define LUA_VECLIBNAME "vector"
 LUALIB_API int luaopen_vector(lua_State* L);
+LUALIB_API int vector_create(lua_State* L);
+LUALIB_API int vector_magnitude(lua_State* L);
+LUALIB_API int vector_normalize(lua_State* L);
+LUALIB_API int vector_cross(lua_State* L);
+LUALIB_API int vector_dot(lua_State* L);
+LUALIB_API int vector_angle(lua_State* L);
+LUALIB_API int vector_floor(lua_State* L);
+LUALIB_API int vector_ceil(lua_State* L);
+LUALIB_API int vector_abs(lua_State* L);
+LUALIB_API int vector_sign(lua_State* L);
+LUALIB_API int vector_clamp(lua_State* L);
+LUALIB_API int vector_min(lua_State* L);
+LUALIB_API int vector_max(lua_State* L);
+LUALIB_API int vector_index(lua_State* L);
+LUALIB_API int vector_lerp(lua_State* L);
 
 // open all builtin libraries
 LUALIB_API void luaL_openlibs(lua_State* L);
