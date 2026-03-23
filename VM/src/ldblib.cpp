@@ -24,7 +24,7 @@ static lua_State* getthread(lua_State* L, int* arg)
     }
 }
 
-static int db_info(lua_State* L)
+int db_info(lua_State* L)
 {
     int arg;
     lua_State* L1 = getthread(L, &arg);
@@ -120,7 +120,7 @@ static int db_info(lua_State* L)
     return results;
 }
 
-static int db_traceback(lua_State* L)
+int db_traceback(lua_State* L)
 {
     int arg;
     lua_State* L1 = getthread(L, &arg);

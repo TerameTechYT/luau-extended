@@ -14,9 +14,8 @@
 // builds a number with 'n' ones (1 <= n <= NBITS)
 #define mask(n) (~((ALLONES << 1) << ((n)-1)))
 
-typedef unsigned b_uint;
 
-static b_uint andaux(lua_State* L)
+b_uint andaux(lua_State* L)
 {
     int i, n = lua_gettop(L);
     b_uint r = ~(b_uint)0;
@@ -25,21 +24,21 @@ static b_uint andaux(lua_State* L)
     return trim(r);
 }
 
-static int b_and(lua_State* L)
+int b_and(lua_State* L)
 {
     b_uint r = andaux(L);
     lua_pushunsigned(L, r);
     return 1;
 }
 
-static int b_test(lua_State* L)
+int b_test(lua_State* L)
 {
     b_uint r = andaux(L);
     lua_pushboolean(L, r != 0);
     return 1;
 }
 
-static int b_or(lua_State* L)
+int b_or(lua_State* L)
 {
     int i, n = lua_gettop(L);
     b_uint r = 0;
@@ -49,7 +48,7 @@ static int b_or(lua_State* L)
     return 1;
 }
 
-static int b_xor(lua_State* L)
+int b_xor(lua_State* L)
 {
     int i, n = lua_gettop(L);
     b_uint r = 0;
@@ -59,14 +58,14 @@ static int b_xor(lua_State* L)
     return 1;
 }
 
-static int b_not(lua_State* L)
+int b_not(lua_State* L)
 {
     b_uint r = ~luaL_checkunsigned(L, 1);
     lua_pushunsigned(L, trim(r));
     return 1;
 }
 
-static int b_shift(lua_State* L, b_uint r, int i)
+int b_shift(lua_State* L, b_uint r, int i)
 {
     if (i < 0)
     { // shift right?
@@ -89,17 +88,17 @@ static int b_shift(lua_State* L, b_uint r, int i)
     return 1;
 }
 
-static int b_lshift(lua_State* L)
+int b_lshift(lua_State* L)
 {
     return b_shift(L, luaL_checkunsigned(L, 1), luaL_checkinteger(L, 2));
 }
 
-static int b_rshift(lua_State* L)
+int b_rshift(lua_State* L)
 {
     return b_shift(L, luaL_checkunsigned(L, 1), -luaL_checkinteger(L, 2));
 }
 
-static int b_arshift(lua_State* L)
+int b_arshift(lua_State* L)
 {
     b_uint r = luaL_checkunsigned(L, 1);
     int i = luaL_checkinteger(L, 2);
@@ -116,7 +115,7 @@ static int b_arshift(lua_State* L)
     }
 }
 
-static int b_rot(lua_State* L, int i)
+int b_rot(lua_State* L, int i)
 {
     b_uint r = luaL_checkunsigned(L, 1);
     i &= (NBITS - 1); // i = i % NBITS
@@ -127,12 +126,12 @@ static int b_rot(lua_State* L, int i)
     return 1;
 }
 
-static int b_lrot(lua_State* L)
+int b_lrot(lua_State* L)
 {
     return b_rot(L, luaL_checkinteger(L, 2));
 }
 
-static int b_rrot(lua_State* L)
+int b_rrot(lua_State* L)
 {
     return b_rot(L, -luaL_checkinteger(L, 2));
 }
@@ -155,7 +154,7 @@ static int fieldargs(lua_State* L, int farg, int* width)
     return f;
 }
 
-static int b_extract(lua_State* L)
+int b_extract(lua_State* L)
 {
     int w;
     b_uint r = luaL_checkunsigned(L, 1);
@@ -165,7 +164,7 @@ static int b_extract(lua_State* L)
     return 1;
 }
 
-static int b_replace(lua_State* L)
+int b_replace(lua_State* L)
 {
     int w;
     b_uint r = luaL_checkunsigned(L, 1);
@@ -178,7 +177,7 @@ static int b_replace(lua_State* L)
     return 1;
 }
 
-static int b_countlz(lua_State* L)
+int b_countlz(lua_State* L)
 {
     b_uint v = luaL_checkunsigned(L, 1);
 
@@ -194,7 +193,7 @@ static int b_countlz(lua_State* L)
     return 1;
 }
 
-static int b_countrz(lua_State* L)
+int b_countrz(lua_State* L)
 {
     b_uint v = luaL_checkunsigned(L, 1);
 
@@ -210,7 +209,7 @@ static int b_countrz(lua_State* L)
     return 1;
 }
 
-static int b_swap(lua_State* L)
+int b_swap(lua_State* L)
 {
     b_uint n = luaL_checkunsigned(L, 1);
     n = (n << 24) | ((n << 8) & 0xff0000) | ((n >> 8) & 0xff00) | (n >> 24);
