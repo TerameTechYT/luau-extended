@@ -51,6 +51,9 @@ LUALIB_API LUA_PRINTF_ATTR(2, 3) l_noret luaL_errorL(lua_State* L, const char* f
 LUALIB_API int luaL_checkoption(lua_State* L, int narg, const char* def, const char* const lst[]);
 
 LUALIB_API const char* luaL_tolstring(lua_State* L, int idx, size_t* len);
+LUALIB_API const char* luaL_tabletostring(lua_State* L, int idx);
+LUALIB_API double luaL_tonumber(lua_State* L, int idx);
+LUALIB_API int luaL_toboolean(lua_State* L, int idx);
 
 LUALIB_API lua_State* luaL_newstate(void);
 

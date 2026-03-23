@@ -10,6 +10,9 @@
 #include "lnumutils.h"
 
 #include <string.h>
+#include <cstdlib>
+#include <ctype.h>
+#include <cstdio>
 
 LUAU_FASTFLAG(LuauStacklessPcall)
 
@@ -602,6 +605,255 @@ void luaL_pushresultsize(luaL_Strbuf* B, size_t size)
 }
 
 // }======================================================
+#define LUA_MAXTTSDEPTH 16
+
+static void add_escaped(luaL_Buffer* buf, const char* s, size_t len)
+{
+    const unsigned char* p = (const unsigned char*)s;
+    const unsigned char* end = p + len;
+
+    for (; p < end; ++p)
+    {
+        unsigned char c = *p;
+        switch (c)
+        {
+        case '\\':
+            luaL_addstring(buf, "\\\\");
+            break;
+        case '"':
+            luaL_addstring(buf, "\\\"");
+            break;
+        case '\n':
+            luaL_addstring(buf, "\\n");
+            break;
+        case '\r':
+            luaL_addstring(buf, "\\r");
+            break;
+        case '\t':
+            luaL_addstring(buf, "\\t");
+            break;
+        case '\b':
+            luaL_addstring(buf, "\\b");
+            break;
+        case '\f':
+            luaL_addstring(buf, "\\f");
+            break;
+        default:
+            if (c >= 0x20 && c <= 0x7E)
+            {
+                char tmp[2] = {(char)c, '\0'};
+                luaL_addstring(buf, tmp);
+            }
+            else
+            {
+                char tmp[5];
+                snprintf(tmp, sizeof(tmp), "\\x%02X", (unsigned)c);
+                luaL_addstring(buf, tmp);
+            }
+            break;
+        }
+    }
+}
+
+static void serialize_value(lua_State* L, int idx, int seen_index, luaL_Buffer* buf, int depth);
+
+static void add_number(luaL_Buffer* buf, lua_Number num)
+{
+    // Handle NaN/Inf explicitly (Lua prints them, but you may want different behavior)
+    if (num != num)
+    {
+        luaL_addstring(buf, "nan");
+        return;
+    }
+
+    // print integers without .0 if representable
+    lua_Number ip;
+    if (modf(num, &ip) == 0.0 && ip >= (lua_Number)LLONG_MIN && ip <= (lua_Number)LLONG_MAX)
+    {
+        char tmp[64];
+        snprintf(tmp, sizeof(tmp), "%lld", (long long)ip);
+        luaL_addstring(buf, tmp);
+    }
+    else
+    {
+        char tmp[64];
+        snprintf(tmp, sizeof(tmp), "%.14g", (double)num);
+        luaL_addstring(buf, tmp);
+    }
+}
+
+static void add_indent(luaL_Buffer* buf, int depth)
+{
+    for (int i = 0; i < depth; ++i)
+        luaL_addchar(buf, '\t');
+}
+
+static void serialize_table(lua_State* L, int idx, int seen_index, luaL_Buffer* buf, int depth)
+{
+    if (depth > LUA_MAXTTSDEPTH)
+    {
+        luaL_addstring(buf, "<...>");
+        return;
+    }
+
+    idx = lua_absindex(L, idx);
+    seen_index = lua_absindex(L, seen_index);
+
+    luaL_checkstack(L, LUA_MAXTTSDEPTH, "serialize table");
+
+    // recursion stack cycle check: if seen[table] then cycle
+    lua_pushvalue(L, idx);
+    lua_rawget(L, seen_index);
+    if (!lua_isnil(L, -1))
+    {
+        lua_pop(L, 1);
+        luaL_addstring(buf, "<...>");
+        return;
+    }
+    lua_pop(L, 1);
+
+    // seen[table] = true
+    lua_pushvalue(L, idx);
+    lua_pushboolean(L, 1);
+    lua_rawset(L, seen_index);
+
+    luaL_addchar(buf, '{');
+
+    // array part
+    size_t seq = (size_t)lua_objlen(L, idx);
+    bool any = false;
+
+    for (size_t i = 1; i <= seq; ++i)
+    {
+        lua_rawgeti(L, idx, (lua_Integer)i);
+        if (!any)
+        {
+            luaL_addchar(buf, '\n');
+            any = true;
+        }
+        else
+        {
+            luaL_addstring(buf, ",\n");
+        }
+
+        add_indent(buf, depth + 1);
+        serialize_value(L, -1, seen_index, buf, depth + 1);
+        lua_pop(L, 1);
+    }
+
+    // hash part
+    lua_pushnil(L);
+    while (lua_next(L, idx) != 0)
+    {
+        // skip integer keys in 1..seq (already printed)
+        if (lua_type(L, -2) == LUA_TNUMBER)
+        {
+            lua_Number kn = lua_tonumber(L, -2);
+            lua_Integer k = (lua_Integer)kn;
+            if ((lua_Number)k == kn && k >= 1 && (size_t)k <= seq)
+            {
+                lua_pop(L, 1);
+                continue;
+            }
+        }
+
+        if (!any)
+        {
+            luaL_addchar(buf, '\n');
+            any = true;
+        }
+        else
+        {
+            luaL_addstring(buf, ",\n");
+        }
+
+        add_indent(buf, depth + 1);
+        luaL_addchar(buf, '[');
+        serialize_value(L, -2, seen_index, buf, depth + 1); // key
+        luaL_addstring(buf, "] = ");
+        serialize_value(L, -1, seen_index, buf, depth + 1); // value
+
+        lua_pop(L, 1); // pop value, keep key
+    }
+
+    if (any)
+    {
+        luaL_addchar(buf, '\n');
+        add_indent(buf, depth);
+    }
+
+    luaL_addchar(buf, '}');
+
+    lua_pushvalue(L, idx);
+    lua_pushnil(L);
+    lua_rawset(L, seen_index);
+}
+
+static void serialize_value(lua_State* L, int idx, int seen_index, luaL_Buffer* buf, int depth)
+{
+    if (depth > LUA_MAXTTSDEPTH)
+    {
+        luaL_addstring(buf, "<...>");
+        return;
+    }
+
+    idx = lua_absindex(L, idx);
+    seen_index = lua_absindex(L, seen_index);
+
+    luaL_checkstack(L, LUA_MAXTTSDEPTH, "serialize value");
+
+    switch (lua_type(L, idx))
+    {
+    case LUA_TNIL:
+        luaL_addstring(buf, "nil");
+        break;
+    case LUA_TNUMBER:
+        add_number(buf, lua_tonumber(L, idx));
+        break;
+    case LUA_TBOOLEAN:
+        luaL_addstring(buf, lua_toboolean(L, idx) ? "true" : "false");
+        break;
+    case LUA_TSTRING:
+    {
+        size_t len;
+        const char* s = lua_tolstring(L, idx, &len);
+        luaL_addchar(buf, '"');
+        add_escaped(buf, s, len);
+        luaL_addchar(buf, '"');
+        break;
+    }
+    case LUA_TTABLE:
+        serialize_table(L, idx, seen_index, buf, depth);
+        break;
+    default:
+    {
+        const void* ptr = lua_topointer(L, idx);
+        unsigned long long enc = lua_encodepointer(L, uintptr_t(ptr));
+        char tmp[96];
+        snprintf(tmp, sizeof(tmp), "%s: 0x%016llx", luaL_typename(L, idx), enc);
+        luaL_addstring(buf, tmp);
+        break;
+    }
+    }
+}
+
+const char* luaL_tabletostring(lua_State* L, int idx)
+{
+    idx = lua_absindex(L, idx);
+    luaL_checkstack(L, LUA_MAXTTSDEPTH, "table to string");
+
+    lua_newtable(L);
+    int seen_index = lua_gettop(L); // absolute
+
+    luaL_Buffer buf;
+    luaL_buffinit(L, &buf);
+
+    serialize_value(L, idx, seen_index, &buf, 0);
+
+    lua_remove(L, seen_index); // remove seen table
+    luaL_pushresult(&buf);     // push final string
+    return lua_tostring(L, -1);
+}
 
 const char* luaL_tolstring(lua_State* L, int idx, size_t* len)
 {
@@ -650,6 +902,9 @@ const char* luaL_tolstring(lua_State* L, int idx, size_t* len)
     case LUA_TSTRING:
         lua_pushvalue(L, idx);
         break;
+    case LUA_TTABLE:
+        luaL_tabletostring(L, idx);
+        break;
     default:
     {
         const void* ptr = lua_topointer(L, idx);
@@ -659,4 +914,98 @@ const char* luaL_tolstring(lua_State* L, int idx, size_t* len)
     }
     }
     return lua_tolstring(L, -1, len);
+}
+
+double luaL_tonumber(lua_State* L, int idx)
+{
+    if (luaL_callmeta(L, idx, "__tonumber")) // is there a metafield?
+    {
+        int isNum;
+        double n = lua_tonumberx(L, -1, &isNum);
+        if (!isNum)
+            luaL_error(L, "'__tonumber' must return a number");
+        return n;
+    }
+
+    switch (lua_type(L, idx))
+    {
+    case LUA_TBOOLEAN:
+    case LUA_TNUMBER:
+    case LUA_TSTRING:
+    {
+        int isNum = 0;
+        int base = luaL_optinteger(L, idx + 1, 10);
+        if (base == 10)
+        { // standard conversion
+            double n = lua_tonumberx(L, idx, &isNum);
+            if (isNum)
+            {
+                lua_pushnumber(L, n);
+                return n;
+            }
+            luaL_checkany(L, idx); // error if we don't have any argument
+        }
+        else
+        {
+            const char* s1 = luaL_checkstring(L, idx);
+            luaL_argcheck(L, 2 <= base && base <= 36, 2, "base out of range");
+            char* s2;
+            unsigned long long n;
+            n = strtoull(s1, &s2, base);
+            if (s1 != s2)
+            { // at least one valid digit?
+                while (isspace((unsigned char)(*s2)))
+                    s2++; // skip trailing spaces
+                if (*s2 == '\0')
+                { // no invalid trailing characters?
+                    lua_pushnumber(L, (double)n);
+                    return (double)n;
+                }
+            }
+        }
+        break;
+    }
+    case LUA_TNIL:
+    default:
+        break;
+    }
+    lua_pushnil(L);
+    return 0;
+}
+
+int luaL_toboolean(lua_State* L, int idx)
+{
+    if (luaL_callmeta(L, idx, "__toboolean")) // is there a metafield?
+    {
+        if (lua_isboolean(L, -1))
+            luaL_error(L, "'__toboolean' must return a boolean");
+        return lua_toboolean(L, -1);
+    }
+
+    switch (lua_type(L, idx))
+    {
+    case LUA_TBOOLEAN:
+    {
+        lua_pushboolean(L, lua_toboolean(L, idx));
+        break;
+    }
+    case LUA_TNUMBER:
+    {
+        double n = lua_tonumber(L, idx);
+        lua_pushboolean(L, n == 1);
+        break;
+    }
+    case LUA_TSTRING:
+    {
+        const char* s = ::luaL_tolstring(L, idx, NULL);
+        lua_pushboolean(L, strcmp(s, "true") == 0 || strcmp(s, "1") == 0);
+        break;
+    }
+    default:
+    {
+        lua_pushboolean(L, 0);
+        break;
+    }
+    }
+    return lua_toboolean(L, -1);
 }
