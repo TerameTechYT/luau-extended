@@ -15,9 +15,7 @@ using namespace Luau;
 LUAU_FASTFLAG(DebugLuauForceOldSolver)
 LUAU_DYNAMIC_FASTINT(LuauTypeFamilyApplicationCartesianProductLimit)
 LUAU_FASTFLAG(DebugLuauAssertOnForcedConstraint)
-LUAU_FASTFLAG(LuauExplicitTypeInstantiationSyntax)
 LUAU_FASTFLAG(LuauExplicitTypeInstantiationSupport)
-LUAU_FASTFLAG(LuauReworkInfiniteTypeFinder)
 LUAU_FASTFLAG(LuauTypeFunctionsCaptureNestedInstances)
 
 struct TypeFunctionFixture : Fixture
@@ -1927,8 +1925,6 @@ TEST_CASE_FIXTURE(TypeFunctionFixture, "recursive_restraint_violation3")
 
 TEST_CASE_FIXTURE(Fixture, "recursive_restraint_violation4")
 {
-    ScopedFastFlag _{FFlag::LuauReworkInfiniteTypeFinder, true};
-
     LUAU_REQUIRE_NO_ERRORS(check(R"(
         type A = { B<any> }
 
@@ -1938,8 +1934,6 @@ TEST_CASE_FIXTURE(Fixture, "recursive_restraint_violation4")
 
 TEST_CASE_FIXTURE(Fixture, "recursive_restraint_violation_with_defaults")
 {
-    ScopedFastFlag _{FFlag::LuauReworkInfiniteTypeFinder, true};
-
     // This is a fairly benign example, but the RFC claims it should be disallowed.
     // See: https://github.com/luau-lang/luau/pull/68.
     CheckResult result = check(R"(
@@ -1954,8 +1948,6 @@ TEST_CASE_FIXTURE(Fixture, "recursive_restraint_violation_with_defaults")
 
 TEST_CASE_FIXTURE(Fixture, "cli_184124_recursive_restraint_violation_from_devforum")
 {
-    ScopedFastFlag _{FFlag::LuauReworkInfiniteTypeFinder, true};
-
     LUAU_REQUIRE_NO_ERRORS(check(R"(
         type TypeA<A... = ()> = { Func: (self: TypeA<A...>, func: (A...) -> ()) -> () }
         type TypeB<A = any> = { Value: TypeA<TypeB<A>> }
@@ -2020,7 +2012,6 @@ TEST_CASE_FIXTURE(BuiltinsFixture, "oss_2114_type_instantiation_on_type_function
 {
     ScopedFastFlag sffs[] = {
         {FFlag::DebugLuauForceOldSolver, false},
-        {FFlag::LuauExplicitTypeInstantiationSyntax, true},
         {FFlag::LuauExplicitTypeInstantiationSupport, true},
     };
 
@@ -2045,7 +2036,6 @@ TEST_CASE_FIXTURE(BuiltinsFixture, "oss_2144_type_instantiation_on_type_function
 {
     ScopedFastFlag sffs[] = {
         {FFlag::DebugLuauForceOldSolver, false},
-        {FFlag::LuauExplicitTypeInstantiationSyntax, true},
         {FFlag::LuauExplicitTypeInstantiationSupport, true},
     };
 
