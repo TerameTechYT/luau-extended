@@ -10,6 +10,8 @@
 #include "lnumutils.h"
 
 #include <string.h>
+#include <cstdlib>
+#include <ctype.h>
 
 LUAU_FASTFLAG(LuauManagedDebugNames)
 
@@ -687,4 +689,144 @@ const char* luaL_tolstring(lua_State* L, int idx, size_t* len)
     }
     }
     return lua_tolstring(L, -1, len);
+}
+
+double luaL_tonumber(lua_State* L, int idx, int* isNum, int base)
+{
+    if (luaL_callmeta(L, idx, "__tonumber")) // is there a metafield?
+    {
+        int isnum;
+        double n = lua_tonumberx(L, -1, &isnum);
+        if (!isnum)
+        {
+            luaL_error(L, "'__tonumber' must return a number");
+            return 0.0;
+        }
+
+        if (isNum)
+            *isNum = isnum;
+        return n;
+    }
+
+    switch (lua_type(L, idx))
+    {
+    case LUA_TNUMBER:
+        lua_pushvalue(L, idx);
+        break;
+    case LUA_TSTRING:
+    {
+        const char* s = luaL_checkstring(L, idx);
+        int64_t result;
+        if (luaO_str2l(s, &result, base))
+            lua_pushnumber(L, (double) result);
+        else
+            lua_pushnil(L);
+        break;
+    }
+    case LUA_TINTEGER:
+    {
+        int isInt;
+        int64_t l = lua_tointeger64(L, idx, &isInt);
+        if (isInt)
+            lua_pushnumber(L, (double)l);
+        else
+            lua_pushnil(L);
+        break;
+    }
+    default:
+        lua_pushnil(L);
+        break;
+    }
+    return lua_tonumberx(L, -1, isNum);
+}
+
+int64_t luaL_tointeger64(lua_State* L, int idx, int* isInteger, int base)
+{
+    if (luaL_callmeta(L, idx, "__tointeger")) // is there a metafield?
+    {
+        int isnum;
+        int64_t n = lua_tointeger64(L, -1, &isnum);
+        if (!isnum)
+        {
+            luaL_error(L, "'__tointeger' must return a integer");
+            return 0;
+        }
+
+        if (isInteger)
+            *isInteger = isnum;
+        return n;
+    }
+
+    switch (lua_type(L, idx))
+    {
+    case LUA_TNUMBER:
+    {
+        double d = lua_tonumber(L, idx);
+        lua_pushinteger64(L, (int64_t)d);
+        break;
+    }
+    case LUA_TINTEGER:
+        lua_pushvalue(L, idx);
+        break;
+    case LUA_TSTRING:
+    {
+        const char* s = luaL_checkstring(L, idx);
+        int64_t result;
+        if (luaO_str2l(s, &result, base))
+            lua_pushinteger64(L, result);
+        else
+            lua_pushnil(L);
+        break;
+    }
+    default:
+    {
+        lua_pushnil(L);
+        break;
+    }
+    }
+    return lua_tointeger64(L, -1, isInteger);
+}
+
+int luaL_toboolean(lua_State* L, int idx)
+{
+    if (luaL_callmeta(L, idx, "__toboolean")) // is there a metafield?
+    {
+        int b = lua_toboolean(L, idx);
+        if (lua_type(L, -1) != LUA_TBOOLEAN)
+        {
+            luaL_error(L, "'__toboolean' must return a boolean");
+            return 0;
+        }
+
+        return b;
+    }
+
+    switch (lua_type(L, idx))
+    {
+    case LUA_TBOOLEAN:
+        lua_pushvalue(L, idx);
+        break;
+    case LUA_TNUMBER:
+    {
+        double n = lua_tonumber(L, idx);
+        lua_pushboolean(L, n == 1.0);
+        break;
+    }
+    case LUA_TSTRING:
+    {
+        const char* s = luaL_checkstring(L, idx);
+        lua_pushboolean(L, strcmp(s, "true") == 0 || strcmp(s, "1") == 0);
+        break;
+    }
+    case LUA_TINTEGER:
+    {
+        int64_t l = lua_tointeger64(L, idx, nullptr);
+        lua_pushboolean(L, l == 1);
+        break;
+    }
+    default:
+        lua_pushnil(L);
+        break;
+    }
+    return lua_toboolean(L, -1);
 }

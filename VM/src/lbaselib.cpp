@@ -39,36 +39,26 @@ static int luaB_print(lua_State* L)
 static int luaB_tonumber(lua_State* L)
 {
     int base = luaL_optinteger(L, 2, 10);
-    if (base == 10)
-    { // standard conversion
-        int isnum = 0;
-        double n = lua_tonumberx(L, 1, &isnum);
-        if (isnum)
-        {
-            lua_pushnumber(L, n);
-            return 1;
-        }
-        luaL_checkany(L, 1); // error if we don't have any argument
-    }
-    else
-    {
-        const char* s1 = luaL_checkstring(L, 1);
-        luaL_argcheck(L, 2 <= base && base <= 36, 2, "base out of range");
-        char* s2;
-        unsigned long long n;
-        n = strtoull(s1, &s2, base);
-        if (s1 != s2)
-        { // at least one valid digit?
-            while (isspace((unsigned char)(*s2)))
-                s2++; // skip trailing spaces
-            if (*s2 == '\0')
-            { // no invalid trailing characters?
-                lua_pushnumber(L, (double)n);
-                return 1;
-            }
-        }
-    }
-    lua_pushnil(L); // else not a number
+    luaL_argcheck(L, 2 <= base && base <= 36, 2, "base out of range");
+    luaL_tonumber(L, 1, NULL, base);
+
+    return 1;
+}
+
+static int luaB_tointeger64(lua_State* L)
+{
+    int base = luaL_optinteger(L, 2, 10);
+    luaL_argcheck(L, 2 <= base && base <= 36, 2, "base out of range");
+    luaL_tointeger64(L, 1, NULL, base);
+
+    return 1;
+}
+
+static int luaB_toboolean(lua_State* L)
+{
+    luaL_checkany(L, 1);
+    lua_pushboolean(L, luaL_toboolean(L, 1));
+
     return 1;
 }
 
@@ -445,6 +435,8 @@ static const luaL_Reg base_funcs[] = {
     {"setmetatable", luaB_setmetatable},
     {"tonumber", luaB_tonumber},
     {"tostring", luaB_tostring},
+    {"toboolean", luaB_toboolean},
+    {"tointeger", luaB_tointeger64},
     {"type", luaB_type},
     {"typeof", luaB_typeof},
     {NULL, NULL},
