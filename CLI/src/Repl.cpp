@@ -100,6 +100,17 @@ static Luau::CompileOptions copts()
     return result;
 }
 
+static int lua_clear(lua_State* L)
+{
+#if _WIN32
+    system("cls");
+#else
+    system("clear");
+#endif
+
+    return 0;
+}
+
 static int lua_loadstring(lua_State* L)
 {
     size_t l = 0;
@@ -213,6 +224,7 @@ void setupState(lua_State* L)
     luaL_openlibs(L);
 
     static const luaL_Reg funcs[] = {
+        {"clear", lua_clear},
         {"loadstring", lua_loadstring},
         {"collectgarbage", lua_collectgarbage},
 #ifdef CALLGRIND
