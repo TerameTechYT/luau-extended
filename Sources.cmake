@@ -384,40 +384,43 @@ target_sources(Luau.VM PRIVATE
     VM/include/luaconf.h
     VM/include/lualib.h
 
-    VM/src/lapi.cpp
-    VM/src/laux.cpp
     VM/src/lbaselib.cpp
     VM/src/lbitlib.cpp
-    VM/src/lbuffer.cpp
     VM/src/lbuflib.cpp
-    VM/src/lbuiltins.cpp
-    VM/src/lcorolib.cpp
     VM/src/ldblib.cpp
+    VM/src/lcorolib.cpp
+    VM/src/lgclib.cpp
+    VM/src/lmathlib.cpp
+    VM/src/loslib.cpp
+    VM/src/lstrlib.cpp
+    VM/src/ltablib.cpp
+    VM/src/lutf8lib.cpp
+    VM/src/lveclib.cpp
+    VM/src/lclasslib.cpp
+
+    VM/src/lapi.cpp
+    VM/src/laux.cpp
+    VM/src/lbuffer.cpp
+    VM/src/lbuiltins.cpp
     VM/src/ldebug.cpp
     VM/src/ldo.cpp
     VM/src/lfunc.cpp
     VM/src/lgc.cpp
     VM/src/lgcdebug.cpp
     VM/src/linit.cpp
-    VM/src/lmathlib.cpp
     VM/src/lmem.cpp
     VM/src/lnumprint.cpp
     VM/src/lobject.cpp
-    VM/src/loslib.cpp
     VM/src/lperf.cpp
     VM/src/lstate.cpp
     VM/src/lstring.cpp
-    VM/src/lstrlib.cpp
     VM/src/ltable.cpp
-    VM/src/ltablib.cpp
     VM/src/ltm.cpp
     VM/src/ludata.cpp
-    VM/src/lutf8lib.cpp
-    VM/src/lveclib.cpp
+
     VM/src/lintlib.cpp
     VM/src/lvmexecute.cpp
     VM/src/lclass.cpp
-    VM/src/lclasslib.cpp
     VM/src/lvector.cpp
     VM/src/lvmload.cpp
     VM/src/lvmutils.cpp

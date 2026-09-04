@@ -143,6 +143,7 @@ target_include_directories(Luau.VM.Internals INTERFACE VM/src)
 set(LUAU_OPTIONS)
 
 if(MSVC)
+    list(APPEND LUAU_OPTIONS /DLUAI_GCMETRICS)
     list(APPEND LUAU_OPTIONS /D_CRT_SECURE_NO_WARNINGS) # We need to use the portable CRT functions.
     list(APPEND LUAU_OPTIONS "/we4018") # Signed/unsigned mismatch
     list(APPEND LUAU_OPTIONS "/we4388") # Also signed/unsigned mismatch

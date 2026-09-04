@@ -1,6 +1,8 @@
 // This file is part of the Luau programming language and is licensed under MIT License; see LICENSE.txt for details
 #include "Luau/BuiltinDefinitions.h"
 
+LUAU_FASTFLAG(LuauGcLibrary)
+
 LUAU_FASTFLAG(LuauIntegerLibrary)
 LUAU_FASTFLAG(LuauIntegerType2)
 LUAU_FASTFLAG(LuauAllowGlobalDeclarationToBeCalledClass)
@@ -394,6 +396,65 @@ declare class: {
 }
 )CLASS_SRC";
 
+static const char* kBuiltinDefinitionGcSrc = R"CLASS_SRC(
+type GCStats = {
+    triggertermpos: number,
+    triggerintegral: number,
+    atomicstarttotalsizebytes: number,
+    endtotalsizebytes: number,
+    heapgoalsizebytes: number,
+    starttimestamp: number,
+    atomicstarttimestamp: number,
+    endtimestamp: number,
+}
+
+type GCCycleMetrics = {
+    starttotalsizebytes: number,
+    endtotalsizebytes: number,
+    pausetime: number,
+    starttimestamp: number,
+    endtimestamp: number,
+    marktime: number,
+    markassisttime: number,
+    markmaxexplicittime: number,
+    markexplicitsteps: number,
+    markwork: number,
+    atomictime: number,
+    sweeptime: number,
+    sweepassisttime: number,
+    sweepmaxexplicittime: number,
+    sweepexplicitsteps: number,
+    sweepwork: number,
+    assistwork: number,
+    explicitwork: number,
+    propagatework: number,
+    propagateagainwork: number
+}
+
+type GCMetrics = {
+    stepexplicittimeacc: number,
+    stepassisttimeacc: number,
+    completedcycles: number,
+    lastcycle: GCCycleMetrics,
+    currcycle: GCCycleMetrics,
+}
+
+declare gc: {
+    stop: () -> (),
+    restart: () -> (),
+    collect: () -> (),
+    count: () -> number,
+    isrunning: () -> boolean,
+    step: () -> boolean,
+    setgoal: (size: number) -> (),
+    setstepmul: (mul: number) -> (),
+    setstepsize: (size: number) -> (),
+    ispaused: () -> boolean,
+    stats: () -> GCStats,
+    metrics: () -> GCMetrics,
+}
+)CLASS_SRC";
+
 std::string getBuiltinDefinitionSource()
 {
     std::string result = kBuiltinDefinitionBaseSrc;
@@ -420,6 +481,11 @@ std::string getBuiltinDefinitionSource()
     if (FFlag::DebugLuauUserDefinedClasses && FFlag::LuauAllowGlobalDeclarationToBeCalledClass)
     {
         result += kBuiltinDefinitionClassSrc;
+    }
+
+    if (FFlag::LuauGcLibrary)
+    {
+        result += kBuiltinDefinitionGcSrc;
     }
 
     return result;
