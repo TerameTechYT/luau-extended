@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 
+LUAU_FASTFLAG(LuauGcLibrary)
 LUAU_FASTFLAG(LuauIntegerLibrary)
 LUAU_FASTFLAG(DebugLuauUserDefinedClassesRuntime)
 
@@ -51,6 +52,13 @@ void luaL_openlibs(lua_State* L)
     {
         lua_pushcfunction(L, lib->func, NULL);
         lua_pushstring(L, lib->name);
+        lua_call(L, 1, 0);
+    }
+
+    if (FFlag::LuauGcLibrary)
+    {
+        lua_pushcfunction(L, luaopen_gc, NULL);
+        lua_pushstring(L, LUA_GCLIBNAME);
         lua_call(L, 1, 0);
     }
 
